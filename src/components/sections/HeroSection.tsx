@@ -16,12 +16,9 @@ export const HeroSection = observer(() => {
 
   return (
     <section className="hero-section screen-section" id="home">
-      <div className="hero-sky-decor" aria-hidden="true">
-        <span className="hero-sun" />
-      </div>
       <div className="hero-copy" style={{ transform: `translateY(${scrollProgress * -40}px)` }}>
         <AnimatedSignature />
-        <h1 className="hero-title">
+        <h1 className="hero-heading">
           {message.hero.titleLines.map((line) => (
             <span key={line}>{line}</span>
           ))}
@@ -91,6 +88,7 @@ export const HeroSection = observer(() => {
         </div>
       </div>
       <div className="hero-visual-wrap">
+        <span className="hero-sun" aria-hidden="true" />
         <GameVisualPanel className="knowledge-visual-hero" />
         <span className="hero-border-walker" aria-hidden="true">
           <span className="hero-border-walker-pack" />

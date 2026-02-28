@@ -192,24 +192,18 @@ body {
   padding-bottom: 2.6rem;
 }
 
-.hero-sky-decor {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
 .hero-sun {
   position: absolute;
-  right: clamp(1.2rem, 5.5vw, 4.6rem);
-  top: clamp(1rem, 4vh, 2.6rem);
-  width: clamp(84px, 10.8vw, 136px);
+  right: clamp(0.4rem, 1.4vw, 0.9rem);
+  top: clamp(0.4rem, 1.4vh, 0.8rem);
+  width: clamp(54px, 5.6vw, 82px);
   aspect-ratio: 1;
   border-radius: 999px;
   background: radial-gradient(circle at 34% 30%, #fffde7 0%, #ffe997 32%, #ffc945 68%, #f0a930 100%);
-  box-shadow: 0 0 0 8px rgba(255, 224, 122, 0.28), 0 0 44px rgba(255, 196, 74, 0.52);
+  box-shadow: 0 0 0 5px rgba(255, 224, 122, 0.2), 0 0 24px rgba(255, 196, 74, 0.4);
   animation: sky-float 5.2s ease-in-out infinite;
-  z-index: 1;
+  z-index: 4;
+  pointer-events: none;
 }
 
 .hero-sun::before,
@@ -281,7 +275,7 @@ body {
   text-shadow: 0 3px 0 rgba(207, 58, 36, 0.55);
 }
 
-.hero-title span {
+.hero-heading span {
   display: block;
 }
 
@@ -590,75 +584,6 @@ body {
   font-size: 0.66rem;
   font-weight: 800;
   cursor: pointer;
-}
-
-.world-score-history {
-  margin-top: 0.42rem;
-  border: 1px solid rgba(20, 61, 89, 0.24);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 0.3rem 0.36rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.18rem;
-  max-height: 168px;
-  overflow: hidden;
-}
-
-.world-score-history p {
-  margin: 0;
-  font-size: 0.66rem;
-  font-weight: 800;
-  color: #2f5f80;
-}
-
-.world-score-history-empty {
-  font-size: 0.62rem;
-  color: #4c6d85;
-}
-
-.world-score-history ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  flex: 1 1 auto;
-  gap: 0.12rem;
-  max-height: 118px;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
-  overscroll-behavior: contain;
-}
-
-.world-score-history li {
-  min-height: 22px;
-  display: grid;
-  grid-template-columns: minmax(44px, auto) minmax(0, 1fr) minmax(34px, auto) minmax(58px, auto);
-  gap: 0.22rem;
-  align-items: start;
-  padding: 0.12rem 0.2rem;
-  border-radius: 7px;
-  background: rgba(232, 244, 255, 0.72);
-  font-size: 0.6rem;
-  font-weight: 700;
-  color: #2f5f80;
-}
-
-.world-score-history li span {
-  min-width: 0;
-}
-
-.world-score-history li span:nth-child(2) {
-  overflow-wrap: anywhere;
-}
-
-.world-score-history li span:nth-child(1),
-.world-score-history li span:nth-child(3),
-.world-score-history li span:nth-child(4) {
-  white-space: nowrap;
 }
 
 .world-stage-panel-kicker {
@@ -2013,31 +1938,26 @@ body {
   letter-spacing: 0.015em;
 }
 
-.hero-title {
-  font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
-  font-size: clamp(2.35rem, 5vw, 4.25rem);
-  font-weight: 800;
-  line-height: 0.94;
-  color: #ff4b2b;
-  -webkit-text-fill-color: #ff4b2b;
-  -webkit-text-stroke: 1px #fff9ee;
-  text-shadow:
-    0 2px 0 #ffe8bf,
-    0 6px 0 #cf3a24;
+.hero-heading {
+  font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
+  font-size: clamp(2.1rem, 4.6vw, 3.4rem);
+  font-weight: 900;
+  line-height: 1;
+  color: #fff5dd;
+  letter-spacing: -0.01em;
   max-width: 12ch;
 }
 
-.hero-title span {
+.hero-heading span {
   display: block;
-  transform: translateZ(0);
 }
 
-.hero-title span:nth-child(2) {
-  margin-left: 0.04em;
+.hero-heading span:nth-child(2) {
+  margin-left: 0;
 }
 
-.hero-title span:nth-child(3) {
-  margin-left: 0.08em;
+.hero-heading span:nth-child(3) {
+  margin-left: 0;
 }
 
 .hero-description {
@@ -2257,13 +2177,26 @@ body {
   color: var(--type-label);
 }
 
-.hero-title {
+.animated-signature .signature-static {
   font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
-  font-size: clamp(2.1rem, 4.5vw, 3.8rem);
-  font-weight: 700;
-  line-height: 1.02;
-  color: #1e4f77;
-  letter-spacing: 0.01em;
+  font-weight: 800;
+  letter-spacing: 0.004em;
+  color: #1d4d73;
+  text-shadow: none;
+}
+
+.hero-heading {
+  font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
+  font-size: clamp(2.1rem, 4.6vw, 3.4rem);
+  font-weight: 900;
+  line-height: 1;
+  color: #e5862f;
+  letter-spacing: -0.01em;
+}
+
+.hero-heading span:nth-child(2),
+.hero-heading span:nth-child(3) {
+  margin-left: 0;
 }
 
 .section-title,
@@ -2289,8 +2222,8 @@ body {
 .future-card p,
 .knowledge-description {
   font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
-  font-size: clamp(1rem, 1.35vw, 1.16rem);
-  line-height: 1.52;
+  font-size: clamp(0.96rem, 1.25vw, 1.08rem);
+  line-height: 1.56;
   color: var(--type-body);
 }
 
@@ -2306,9 +2239,16 @@ body {
 .hero-link,
 .knowledge-link {
   font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 0.96rem;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
+}
+
+.hero-link-lock-tip {
+  font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0;
 }
 
 .holiday-countdown {
@@ -2322,25 +2262,25 @@ body {
 .holiday-countdown-label {
   margin: 0;
   font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #dd492f;
 }
 
 .holiday-countdown-next {
   margin: 0.36rem 0 0;
-  font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
-  font-size: 1rem;
-  font-weight: 800;
+  font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
   color: #1e4f77;
 }
 
 .holiday-countdown-timer {
   margin: 0.18rem 0 0;
-  font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
-  font-size: clamp(1.2rem, 1.8vw, 1.45rem);
+  font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
+  font-size: clamp(1.06rem, 1.35vw, 1.28rem);
   font-weight: 800;
   color: #ff4b2b;
   letter-spacing: 0.01em;
@@ -2359,7 +2299,7 @@ body {
   justify-content: space-between;
   gap: 0.8rem;
   font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   color: #2f5f80;
 }
 
@@ -2383,25 +2323,25 @@ body {
   }
 
   .animated-signature .signature-static {
-    font-size: clamp(1.7rem, 3.6vw, 2.6rem);
+    font-size: clamp(1.75rem, 3.2vw, 2.45rem);
   }
 
-  .hero-title {
-    font-size: clamp(1.55rem, 3vw, 2.45rem);
-    line-height: 0.96;
+  .hero-heading {
+    font-size: clamp(1.8rem, 3.1vw, 2.55rem);
+    line-height: 1.02;
   }
 
   .hero-description {
     margin-top: 0.55rem;
     margin-bottom: 0.55rem;
     font-size: clamp(0.88rem, 1vw, 0.98rem);
-    line-height: 1.38;
+    line-height: 1.48;
   }
 
   .hero-link {
     min-height: 40px;
     padding: 0.6rem 0.9rem;
-    font-size: 0.84rem;
+    font-size: 0.82rem;
   }
 
   .hero-link-lock-tip {
@@ -2695,19 +2635,19 @@ body {
   }
 
   .animated-signature .signature-static {
-    font-size: clamp(2.25rem, 8.25vw, 4.0625rem);
+    font-size: clamp(1.9rem, 7vw, 2.8rem);
   }
 
-  .hero-title {
-    font-size: clamp(1.64rem, 7.4vw, 2.18rem);
-    line-height: 0.9;
+  .hero-heading {
+    font-size: clamp(1.7rem, 6.5vw, 2.18rem);
+    line-height: 1.02;
   }
 
   .hero-description {
     margin-top: 0.55rem;
     margin-bottom: 0.55rem;
-    font-size: 0.95rem;
-    line-height: 1.35;
+    font-size: 0.9rem;
+    line-height: 1.44;
   }
 
   .hero-link-group {
