@@ -30,8 +30,24 @@ type WorldPlayText = {
   texasOutcomeWin: string;
   texasOutcomeLose: string;
   texasOutcomeTie: string;
-  birthdayLabel: string;
-  birthdayPlaceholder: string;
+  zodiacLabel: string;
+  zodiacPlaceholder: string;
+  zodiacSelectHint: string;
+  zodiacLockedHint: string;
+  zodiacOptions: {
+    rat: string;
+    ox: string;
+    tiger: string;
+    rabbit: string;
+    dragon: string;
+    snake: string;
+    horse: string;
+    goat: string;
+    monkey: string;
+    rooster: string;
+    dog: string;
+    pig: string;
+  };
   fortuneSummary: string;
   fortuneOverall: string;
   fortuneCareer: string;
@@ -69,6 +85,7 @@ type WorldPlayText = {
   rewardTitle: string;
   rewardDescription: string;
   rewardClose: string;
+  rewardEntry: string;
   focusBack: string;
   lastGain: string;
   jackpotWindow: string;
@@ -139,7 +156,7 @@ export const messages: Record<Locale, Messages> = {
       items: [
         { title: "Texas Hold'em", subtitle: 'Deal and score in one tap. Easy to understand.' },
         { title: 'Lucky Wheel', subtitle: 'Spin fast, hit rewards, chase streaks.' },
-        { title: 'Birthday Fortune', subtitle: 'Enter your birthday and reveal today fortune.' },
+        { title: 'Zodiac Fortune', subtitle: 'Pick one zodiac sign to unlock today fortune.' },
         { title: 'Jackpot Rush', subtitle: 'Combine wheel + slots for combo bursts.' }
       ],
       details: [
@@ -162,11 +179,11 @@ export const messages: Record<Locale, Messages> = {
           ]
         },
         {
-          title: 'Birthday Fortune: Daily Hook',
-          description: 'Input birthday once, get personalized daily fortune and lucky hints instantly.',
+          title: 'Zodiac Fortune: One-Time Choice',
+          description: 'Choose one zodiac sign once, then reveal your daily fortune and lucky hints.',
           highlights: [
-            'Simple date input, one-tap generation.',
-            'Daily changing results keep revisit motivation.',
+            'Single-choice zodiac selector, easy to start.',
+            'One-time lock makes the choice meaningful.',
             'Clear fortune dimensions: career, love, wealth.'
           ]
         },
@@ -199,8 +216,24 @@ export const messages: Record<Locale, Messages> = {
         texasOutcomeWin: 'You Win',
         texasOutcomeLose: 'You Lose',
         texasOutcomeTie: 'Tie',
-        birthdayLabel: 'Birthday',
-        birthdayPlaceholder: 'YYYY-MM-DD',
+        zodiacLabel: 'Zodiac Sign',
+        zodiacPlaceholder: 'Select one zodiac sign',
+        zodiacSelectHint: 'You can choose only once. Confirm before generating.',
+        zodiacLockedHint: 'Zodiac already selected. This round is locked.',
+        zodiacOptions: {
+          rat: 'Rat',
+          ox: 'Ox',
+          tiger: 'Tiger',
+          rabbit: 'Rabbit',
+          dragon: 'Dragon',
+          snake: 'Snake',
+          horse: 'Horse',
+          goat: 'Goat',
+          monkey: 'Monkey',
+          rooster: 'Rooster',
+          dog: 'Dog',
+          pig: 'Pig'
+        },
         fortuneSummary: 'Today Fortune',
         fortuneOverall: 'Overall',
         fortuneCareer: 'Career',
@@ -209,7 +242,7 @@ export const messages: Record<Locale, Messages> = {
         fortuneLuckyNumber: 'Lucky Number',
         fortuneLuckyColor: 'Lucky Color',
         fortuneLuckyTime: 'Lucky Time',
-        fortuneNotReady: 'Enter your birthday to generate today fortune.',
+        fortuneNotReady: 'Select one zodiac sign to generate today fortune.',
         wheelSpins: 'Wheel Spins',
         wheelStreak: 'Hot Streak',
         wheelRuleTitle: 'Wheel Rules',
@@ -238,6 +271,7 @@ export const messages: Record<Locale, Messages> = {
         rewardTitle: 'Reward Unlocked',
         rewardDescription: 'Your total score reached 10. Scan this QR code to claim your bonus.',
         rewardClose: 'Close',
+        rewardEntry: 'Reward',
         focusBack: 'Back To Stages',
         lastGain: 'Last Gain',
         jackpotWindow: 'Jackpot Window',
@@ -289,7 +323,7 @@ export const messages: Record<Locale, Messages> = {
       items: [
         { title: '德州扑克牌', subtitle: '一键发牌就能玩，规则直观易懂。' },
         { title: '幸运转盘', subtitle: '快速转动拿奖励，连击越转越爽。' },
-        { title: '生日运势', subtitle: '输入生日，生成今日专属运势。' },
+        { title: '生肖运势', subtitle: '选择一个生肖，生成今日专属运势。' },
         { title: '头奖冲刺', subtitle: '转盘+老虎机联动，爆发感最强。' }
       ],
       details: [
@@ -304,9 +338,9 @@ export const messages: Record<Locale, Messages> = {
           highlights: ['每次转盘约 3 秒，几乎无等待。', '无论输赢都累积连击能量。', '每 3 次给小奖，每 10 次触发大奖。']
         },
         {
-          title: '生日运势：每日留存点',
-          description: '输入生日即可快速生成当日运势，用轻反馈驱动“每天来看看”。',
-          highlights: ['日期输入简单，一键生成。', '结果按日期变化，天然具备日更动力。', '运势维度清晰：事业、感情、财运。']
+          title: '生肖运势：一次抉择',
+          description: '选择一次生肖后立即生成当日运势，用单次选择提升仪式感。',
+          highlights: ['生肖选择简单直观，一键生成。', '一次选择后锁定，反馈更有代入感。', '运势维度清晰：事业、感情、财运。']
         },
         {
           title: '头奖冲刺：双系统联动',
@@ -333,8 +367,24 @@ export const messages: Record<Locale, Messages> = {
         texasOutcomeWin: '你赢了',
         texasOutcomeLose: '你输了',
         texasOutcomeTie: '平局',
-        birthdayLabel: '生日',
-        birthdayPlaceholder: 'YYYY-MM-DD',
+        zodiacLabel: '生肖',
+        zodiacPlaceholder: '请选择一个生肖',
+        zodiacSelectHint: '生肖只能选择一次，请确认后再生成。',
+        zodiacLockedHint: '你已选择生肖，本轮不可重复选择。',
+        zodiacOptions: {
+          rat: '鼠',
+          ox: '牛',
+          tiger: '虎',
+          rabbit: '兔',
+          dragon: '龙',
+          snake: '蛇',
+          horse: '马',
+          goat: '羊',
+          monkey: '猴',
+          rooster: '鸡',
+          dog: '狗',
+          pig: '猪'
+        },
         fortuneSummary: '今日运势',
         fortuneOverall: '综合',
         fortuneCareer: '事业',
@@ -343,7 +393,7 @@ export const messages: Record<Locale, Messages> = {
         fortuneLuckyNumber: '幸运数字',
         fortuneLuckyColor: '幸运色',
         fortuneLuckyTime: '幸运时段',
-        fortuneNotReady: '请输入生日，生成今日运势。',
+        fortuneNotReady: '请选择一个生肖，生成今日运势。',
         wheelSpins: '转盘次数',
         wheelStreak: '连击热度',
         wheelRuleTitle: '转盘规则',
@@ -372,6 +422,7 @@ export const messages: Record<Locale, Messages> = {
         rewardTitle: '奖励已解锁',
         rewardDescription: '你的总分已达到 10 分，扫描下方二维码领取奖励。',
         rewardClose: '关闭',
+        rewardEntry: '奖励入口',
         focusBack: '返回关卡',
         lastGain: '本次得分',
         jackpotWindow: '头奖窗口',

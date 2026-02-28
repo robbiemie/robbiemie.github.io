@@ -22,6 +22,7 @@ type WheelHistoryItem = {
 
 type WheelSegmentRange = [number, number];
 type ScoreSource = 'texas' | 'wheel' | 'fortune' | 'jackpot';
+type ZodiacSign = 'rat' | 'ox' | 'tiger' | 'rabbit' | 'dragon' | 'snake' | 'horse' | 'goat' | 'monkey' | 'rooster' | 'dog' | 'pig';
 
 type ScoreHistoryItem = {
   id: number;
@@ -51,6 +52,7 @@ const RANK_VALUE_MAP: Record<string, number> = {
 
 const LUCKY_COLORS = ['Ruby Red', 'Ocean Blue', 'Mint Green', 'Sun Gold', 'Sky Purple'] as const;
 const LUCKY_TIMES = ['09:00-11:00', '11:00-13:00', '14:00-16:00', '17:00-19:00', '20:00-22:00'] as const;
+const ZODIAC_SIGNS: readonly ZodiacSign[] = ['rat', 'ox', 'tiger', 'rabbit', 'dragon', 'snake', 'horse', 'goat', 'monkey', 'rooster', 'dog', 'pig'];
 
 export type TexasHandCode =
   | 'high_card'
@@ -67,6 +69,8 @@ type TexasOutcome = 'pending' | 'win' | 'lose' | 'tie';
 
 type FortuneState = {
   ready: boolean;
+  locked: boolean;
+  zodiac: ZodiacSign | null;
   lastGain: number;
   overall: number;
   career: number;
@@ -106,7 +110,7 @@ type GameplayActions = {
   playTexas: () => void;
   revealTexas: () => void;
   playWheel: () => void;
-  playFortune: (birthday: string) => void;
+  playFortune: (zodiac: string) => void;
   playJackpot: () => void;
 };
 
@@ -295,8 +299,8 @@ const getTodayKey = (): string => {
   return `${year}-${month}-${day}`;
 };
 
-const isBirthdayValid = (birthday: string): boolean => {
-  return /^\d{4}-\d{2}-\d{2}$/.test(birthday);
+const isZodiacValid = (zodiac: string): zodiac is ZodiacSign => {
+  return ZODIAC_SIGNS.includes(zodiac as ZodiacSign);
 };
 
 const createShuffledDeck = (): DealtCard[] => {
@@ -415,6 +419,8 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
 
   const [fortune, setFortune] = useState<FortuneState>({
     ready: false,
+    locked: false,
+    zodiac: null,
     lastGain: 0,
     overall: 0,
     career: 0,
@@ -563,14 +569,18 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
     }, 960);
   };
 
-  const playFortune = (birthday: string) => {
-    const normalizedBirthday = birthday.trim();
-    if (!isBirthdayValid(normalizedBirthday)) {
+  const playFortune = (zodiac: string) => {
+    if (fortune.locked) {
+      return;
+    }
+
+    const normalizedZodiac = zodiac.trim();
+    if (!isZodiacValid(normalizedZodiac)) {
       setFortune((prevState) => ({ ...prevState, ready: false, lastGain: 0 }));
       return;
     }
 
-    const seed = hashSeed(`${normalizedBirthday}-${getTodayKey()}`);
+    const seed = hashSeed(`${normalizedZodiac}-${getTodayKey()}`);
     const overall = 60 + (seed % 41);
     const career = 50 + ((seed >> 2) % 51);
     const love = 50 + ((seed >> 4) % 51);
@@ -583,6 +593,8 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
 
     setFortune({
       ready: true,
+      locked: true,
+      zodiac: normalizedZodiac,
       lastGain: nextGain,
       overall,
       career,

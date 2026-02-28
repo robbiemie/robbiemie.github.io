@@ -812,6 +812,24 @@ body {
   margin: 0 auto;
 }
 
+.reward-floating-entry {
+  position: fixed;
+  left: clamp(0.8rem, 2.8vw, 1.4rem);
+  bottom: clamp(0.9rem, 2.4vh, 1.4rem);
+  z-index: 22;
+  min-height: 38px;
+  padding: 0.4rem 0.78rem;
+  border: 2px solid rgba(20, 61, 89, 0.76);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffd44e 0%, #f3b830 100%);
+  color: #17344a;
+  font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(15, 36, 55, 0.26);
+}
+
 .world-playground-kicker {
   margin: 0;
   font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
@@ -973,6 +991,19 @@ body {
   font-size: 0.86rem;
   font-weight: 700;
   font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
+}
+
+.fortune-input:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.fortune-hint {
+  margin: 0;
+  font-size: 0.64rem;
+  line-height: 1.24;
+  font-weight: 700;
+  color: #2f5f80;
 }
 
 .fortune-panel {
@@ -2437,6 +2468,11 @@ body {
     border-width: 1px;
   }
 
+  .fortune-hint {
+    font-size: 0.56rem;
+    line-height: 1.2;
+  }
+
   .fortune-panel {
     gap: 0.16rem;
   }
@@ -2679,6 +2715,14 @@ body {
 
   .reward-modal img {
     width: min(100%, 210px);
+  }
+
+  .reward-floating-entry {
+    min-height: 32px;
+    padding: 0.26rem 0.56rem;
+    font-size: 0.64rem;
+    left: 0.72rem;
+    bottom: calc(0.7rem + env(safe-area-inset-bottom));
   }
 }
 

@@ -9,10 +9,11 @@ export const WorldSection = () => {
   const rewardThreshold = 10;
   const rewardImageSrc = `${import.meta.env.BASE_URL}img/qrcode.jpg`;
   const [activeStageIndex, setActiveStageIndex] = useState(0);
-  const [birthdayInput, setBirthdayInput] = useState('');
+  const [selectedZodiac, setSelectedZodiac] = useState('');
   const [wheelHistoryVisible, setWheelHistoryVisible] = useState(false);
   const [isScoreHistoryVisible, setIsScoreHistoryVisible] = useState(false);
   const [isGameplayFocused, setIsGameplayFocused] = useState(false);
+  const [isRewardUnlocked, setIsRewardUnlocked] = useState(false);
   const [isRewardModalOpen, setIsRewardModalOpen] = useState(false);
   const worldSectionRef = useRef<HTMLElement | null>(null);
   const stagePanelRef = useRef<HTMLElement | null>(null);
@@ -80,6 +81,7 @@ export const WorldSection = () => {
     const currentScore = gameplay.totalScore;
 
     if (previousScore < rewardThreshold && currentScore >= rewardThreshold) {
+      setIsRewardUnlocked(true);
       setIsRewardModalOpen(true);
     }
 
@@ -397,19 +399,27 @@ export const WorldSection = () => {
           {activeStageIndex === 2 ? (
             <div className="world-machine world-machine-fortune">
               <label className="fortune-input-row">
-                <span>{message.world.play.birthdayLabel}</span>
-                <input
+                <span>{message.world.play.zodiacLabel}</span>
+                <select
                   className="fortune-input"
-                  type="date"
-                  value={birthdayInput}
-                  onChange={(event) => setBirthdayInput(event.target.value)}
-                  placeholder={message.world.play.birthdayPlaceholder}
-                />
+                  value={selectedZodiac}
+                  disabled={gameplay.fortune.locked}
+                  onChange={(event) => setSelectedZodiac(event.target.value)}
+                >
+                  <option value="">{message.world.play.zodiacPlaceholder}</option>
+                  {Object.entries(message.world.play.zodiacOptions).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
               </label>
+              <p className="fortune-hint">{gameplay.fortune.locked ? message.world.play.zodiacLockedHint : message.world.play.zodiacSelectHint}</p>
               <button
                 type="button"
                 className="world-action-button"
-                onClick={() => runFocusedAction(() => gameplay.playFortune(birthdayInput))}
+                disabled={gameplay.fortune.locked || !selectedZodiac}
+                onClick={() => runFocusedAction(() => gameplay.playFortune(selectedZodiac))}
               >
                 {message.world.play.fortuneAction}
               </button>
@@ -488,6 +498,11 @@ export const WorldSection = () => {
             <img src={rewardImageSrc} alt={message.world.play.rewardTitle} loading="lazy" />
           </section>
         </div>
+      ) : null}
+      {isRewardUnlocked && !isRewardModalOpen ? (
+        <button type="button" className="reward-floating-entry" onClick={() => setIsRewardModalOpen(true)}>
+          {message.world.play.rewardEntry}
+        </button>
       ) : null}
     </section>
   );
