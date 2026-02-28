@@ -1444,6 +1444,43 @@ body {
   color: #c73f2d;
 }
 
+.gomoku-board {
+  display: grid;
+  gap: 0.14rem;
+  padding: 0.16rem;
+  border-radius: 10px;
+  border: 2px solid rgba(20, 61, 89, 0.44);
+  background: linear-gradient(180deg, #f7e5b7 0%, #e8cf92 100%);
+}
+
+.gomoku-cell {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid rgba(42, 78, 104, 0.5);
+  border-radius: 4px;
+  background: rgba(255, 244, 212, 0.88);
+  cursor: pointer;
+}
+
+.gomoku-cell::after {
+  content: '';
+  position: absolute;
+  inset: 20%;
+  border-radius: 999px;
+  transform: scale(0);
+  transition: transform 0.15s ease;
+}
+
+.gomoku-cell.is-black::after {
+  transform: scale(1);
+  background: radial-gradient(circle at 35% 30%, #595959 0%, #2b2b2b 46%, #111 100%);
+}
+
+.gomoku-cell.is-white::after {
+  transform: scale(1);
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #efefef 46%, #d5d5d5 100%);
+}
+
 .world-badge {
   width: fit-content;
   min-height: 28px;
@@ -2669,6 +2706,11 @@ body {
   .jackpot-window strong,
   .jackpot-window em {
     font-size: 0.6rem;
+  }
+
+  .gomoku-board {
+    gap: 0.1rem;
+    padding: 0.12rem;
   }
 
   .world-section.is-game-focus .world-stage-panel {

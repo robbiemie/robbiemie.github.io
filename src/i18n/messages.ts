@@ -86,6 +86,16 @@ type WorldPlayText = {
   rewardDescription: string;
   rewardClose: string;
   rewardEntry: string;
+  gomokuStatusLabel: string;
+  gomokuMovesLabel: string;
+  gomokuTurnLabel: string;
+  gomokuResetAction: string;
+  gomokuOutcomeIdle: string;
+  gomokuOutcomeBlackWin: string;
+  gomokuOutcomeWhiteWin: string;
+  gomokuOutcomeDraw: string;
+  gomokuBlackLabel: string;
+  gomokuWhiteLabel: string;
   focusBack: string;
   lastGain: string;
   jackpotWindow: string;
@@ -157,7 +167,7 @@ export const messages: Record<Locale, Messages> = {
         { title: "Texas Hold'em", subtitle: 'Deal and score in one tap. Easy to understand.' },
         { title: 'Lucky Wheel', subtitle: 'Spin fast, hit rewards, chase streaks.' },
         { title: 'Zodiac Fortune', subtitle: 'Pick one zodiac sign to unlock today fortune.' },
-        { title: 'Jackpot Rush', subtitle: 'Combine wheel + slots for combo bursts.' }
+        { title: 'Gomoku Duel', subtitle: 'Place stones, connect five, and beat the AI.' }
       ],
       details: [
         {
@@ -188,12 +198,12 @@ export const messages: Record<Locale, Messages> = {
           ]
         },
         {
-          title: 'Jackpot Rush: Controlled Chaos',
-          description: 'Alternate between wheel and slots to build combo multipliers and peak excitement.',
+          title: 'Gomoku Duel: Light Strategy',
+          description: 'Classic five-in-a-row. You place black stones, AI places white stones.',
           highlights: [
-            'Wheel rewards boost next slot round multiplier.',
-            'Jackpot window appears every 60 seconds.',
-            'Clear fail-safe: no long loss streaks for new players.'
+            'One tap places one stone, rules are simple.',
+            'Connect five first to win this round.',
+            'Win, lose, or draw all have clear score feedback.'
           ]
         }
       ],
@@ -205,7 +215,7 @@ export const messages: Record<Locale, Messages> = {
         texasRevealAction: 'Reveal Showdown',
         wheelAction: 'Spin Wheel',
         fortuneAction: 'Generate Fortune',
-        jackpotAction: 'Rush Jackpot',
+        jackpotAction: 'Restart Board',
         texasHands: 'Hands Played',
         texasResult: 'Best Hand',
         texasOutcome: 'Round Result',
@@ -272,11 +282,21 @@ export const messages: Record<Locale, Messages> = {
         rewardDescription: 'Your total score reached 10. Scan this QR code to claim your bonus.',
         rewardClose: 'Close',
         rewardEntry: 'Reward',
+        gomokuStatusLabel: 'Board Status',
+        gomokuMovesLabel: 'Moves',
+        gomokuTurnLabel: 'Current Turn',
+        gomokuResetAction: 'Restart Board',
+        gomokuOutcomeIdle: 'In Progress',
+        gomokuOutcomeBlackWin: 'You Win',
+        gomokuOutcomeWhiteWin: 'AI Wins',
+        gomokuOutcomeDraw: 'Draw',
+        gomokuBlackLabel: 'Black',
+        gomokuWhiteLabel: 'White',
         focusBack: 'Back To Stages',
         lastGain: 'Last Gain',
-        jackpotWindow: 'Jackpot Window',
-        jackpotOpen: 'OPEN',
-        jackpotClosed: 'Next Window',
+        jackpotWindow: 'Board Status',
+        jackpotOpen: 'You Win',
+        jackpotClosed: 'AI Wins',
         handNames: {
           high_card: 'High Card',
           pair: 'Pair',
@@ -324,7 +344,7 @@ export const messages: Record<Locale, Messages> = {
         { title: '德州扑克牌', subtitle: '一键发牌就能玩，规则直观易懂。' },
         { title: '幸运转盘', subtitle: '快速转动拿奖励，连击越转越爽。' },
         { title: '生肖运势', subtitle: '选择一个生肖，生成今日专属运势。' },
-        { title: '头奖冲刺', subtitle: '转盘+老虎机联动，爆发感最强。' }
+        { title: '五子棋对弈', subtitle: '落子连成五子，和 AI 进行轻策略对局。' }
       ],
       details: [
         {
@@ -343,9 +363,9 @@ export const messages: Record<Locale, Messages> = {
           highlights: ['生肖选择简单直观，一键生成。', '一次选择后锁定，反馈更有代入感。', '运势维度清晰：事业、感情、财运。']
         },
         {
-          title: '头奖冲刺：双系统联动',
-          description: '转盘奖励会强化下一轮老虎机倍率，制造连续爆发的“高潮窗口”。',
-          highlights: ['转盘命中可叠加老虎机倍率。', '每 60 秒开放一次头奖冲刺窗口。', '新手保护机制避免长时间连败。']
+          title: '五子棋对弈：轻策略休闲',
+          description: '经典五子棋规则，你执黑先手，AI 执白跟随落子。',
+          highlights: ['单击棋盘即可落子，上手非常快。', '先连成五子即可获胜。', '胜负平都有明确得分反馈。']
         }
       ],
       play: {
@@ -356,7 +376,7 @@ export const messages: Record<Locale, Messages> = {
         texasRevealAction: '开牌比大小',
         wheelAction: '转动转盘',
         fortuneAction: '生成运势',
-        jackpotAction: '冲刺头奖',
+        jackpotAction: '重开棋盘',
         texasHands: '已玩局数',
         texasResult: '当前牌型',
         texasOutcome: '对局结果',
@@ -423,11 +443,21 @@ export const messages: Record<Locale, Messages> = {
         rewardDescription: '你的总分已达到 10 分，扫描下方二维码领取奖励。',
         rewardClose: '关闭',
         rewardEntry: '奖励入口',
+        gomokuStatusLabel: '棋局状态',
+        gomokuMovesLabel: '步数',
+        gomokuTurnLabel: '当前回合',
+        gomokuResetAction: '重开棋盘',
+        gomokuOutcomeIdle: '进行中',
+        gomokuOutcomeBlackWin: '你赢了',
+        gomokuOutcomeWhiteWin: 'AI 获胜',
+        gomokuOutcomeDraw: '平局',
+        gomokuBlackLabel: '黑子',
+        gomokuWhiteLabel: '白子',
         focusBack: '返回关卡',
         lastGain: '本次得分',
-        jackpotWindow: '头奖窗口',
-        jackpotOpen: '进行中',
-        jackpotClosed: '下次开启',
+        jackpotWindow: '棋局状态',
+        jackpotOpen: '你赢了',
+        jackpotClosed: 'AI 获胜',
         handNames: {
           high_card: '高牌',
           pair: '一对',

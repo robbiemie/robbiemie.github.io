@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 
-const JACKPOT_CYCLE_SECONDS = 60;
-const JACKPOT_WINDOW_SECONDS = 12;
-
 type WheelZone = 'negative' | 'positive' | 'neutral' | 'plus50' | 'minus50';
 
 type WheelResult = {
@@ -23,10 +20,14 @@ type WheelHistoryItem = {
 type WheelSegmentRange = [number, number];
 type ScoreSource = 'texas' | 'wheel' | 'fortune' | 'jackpot';
 type ZodiacSign = 'rat' | 'ox' | 'tiger' | 'rabbit' | 'dragon' | 'snake' | 'horse' | 'goat' | 'monkey' | 'rooster' | 'dog' | 'pig';
+type GomokuStone = 'empty' | 'black' | 'white';
+type GomokuWinner = 'black' | 'white' | 'draw' | null;
 
 type ScoreHistoryItem = {
   id: number;
   source: ScoreSource;
+  baseGain: number;
+  modifier: number;
   gain: number;
   total: number;
   time: string;
@@ -53,6 +54,7 @@ const RANK_VALUE_MAP: Record<string, number> = {
 const LUCKY_COLORS = ['Ruby Red', 'Ocean Blue', 'Mint Green', 'Sun Gold', 'Sky Purple'] as const;
 const LUCKY_TIMES = ['09:00-11:00', '11:00-13:00', '14:00-16:00', '17:00-19:00', '20:00-22:00'] as const;
 const ZODIAC_SIGNS: readonly ZodiacSign[] = ['rat', 'ox', 'tiger', 'rabbit', 'dragon', 'snake', 'horse', 'goat', 'monkey', 'rooster', 'dog', 'pig'];
+const GOMOKU_SIZE = 9;
 
 export type TexasHandCode =
   | 'high_card'
@@ -102,8 +104,11 @@ type GameplayState = {
   wheelHistory: readonly WheelHistoryItem[];
   fortune: FortuneState;
   jackpotLastGain: number;
-  jackpotWindowOpen: boolean;
-  jackpotCountdown: number;
+  gomokuBoard: readonly GomokuStone[];
+  gomokuSize: number;
+  gomokuCurrentPlayer: 'black' | 'white';
+  gomokuWinner: GomokuWinner;
+  gomokuMoves: number;
 };
 
 type GameplayActions = {
@@ -111,7 +116,8 @@ type GameplayActions = {
   revealTexas: () => void;
   playWheel: () => void;
   playFortune: (zodiac: string) => void;
-  playJackpot: () => void;
+  playJackpot: (index: number) => void;
+  resetJackpot: () => void;
 };
 
 type DealtCard = {
@@ -126,34 +132,34 @@ type HandScore = {
 };
 
 const TEXAS_HAND_BASE_GAIN: Record<TexasHandCode, number> = {
-  high_card: 6,
-  pair: 10,
-  two_pair: 14,
-  three_kind: 20,
-  straight: 28,
-  flush: 36,
-  full_house: 48,
-  four_kind: 66,
-  straight_flush: 88
+  high_card: 1,
+  pair: 2,
+  two_pair: 3,
+  three_kind: 4,
+  straight: 5,
+  flush: 6,
+  full_house: 7,
+  four_kind: 9,
+  straight_flush: 11
 };
 
 const TEXAS_OUTCOME_MULTIPLIER: Record<TexasOutcome, number> = {
   pending: 0,
   win: 1.2,
-  tie: 0.75,
-  lose: -0.55
+  tie: 0.6,
+  lose: -0.8
 };
 
-const TEXAS_MIN_TOTAL_SCORE = -120;
+const TEXAS_MIN_TOTAL_SCORE = -20;
 
 const calculateTexasGain = (handCode: TexasHandCode, outcome: TexasOutcome): number => {
   const baseGain = TEXAS_HAND_BASE_GAIN[handCode];
   const multiplier = TEXAS_OUTCOME_MULTIPLIER[outcome];
   const nextGain = Math.round(baseGain * multiplier);
   if (outcome === 'lose') {
-    return Math.min(nextGain, -2);
+    return Math.min(nextGain, -1);
   }
-  return Math.max(nextGain, 2);
+  return Math.max(nextGain, 1);
 };
 
 const randomInt = (min: number, max: number): number => {
@@ -316,12 +322,12 @@ const pickWheelResult = (): WheelResult => {
   const roll = Math.random() * 100;
 
   if (roll < 20) {
-    const outcomes = [-5, -5, -10, -10] as const;
+    const outcomes = [-1, -2, -2, -3] as const;
     return { gain: outcomes[randomInt(0, outcomes.length - 1)], zone: 'negative', probability: 20 };
   }
 
   if (roll < 40) {
-    const outcomes = [5, 5, 10, 10] as const;
+    const outcomes = [1, 2, 2, 3] as const;
     return { gain: outcomes[randomInt(0, outcomes.length - 1)], zone: 'positive', probability: 20 };
   }
 
@@ -330,11 +336,11 @@ const pickWheelResult = (): WheelResult => {
   }
 
   if (roll < 88.5) {
-    return { gain: 50, zone: 'plus50', probability: 0.5 };
+    return { gain: 10, zone: 'plus50', probability: 0.5 };
   }
 
   if (roll < 90) {
-    return { gain: -50, zone: 'minus50', probability: 1.5 };
+    return { gain: -8, zone: 'minus50', probability: 1.5 };
   }
 
   return { gain: 0, zone: 'neutral', probability: 10 };
@@ -389,13 +395,57 @@ const pickWheelAngle = (zone: WheelZone): number => {
   return fallbackStart + Math.random() * (fallbackEnd - fallbackStart);
 };
 
+const createGomokuBoard = (): GomokuStone[] => {
+  return Array.from({ length: GOMOKU_SIZE * GOMOKU_SIZE }, () => 'empty' as GomokuStone);
+};
+
+const isInsideGomoku = (row: number, col: number, size: number): boolean => {
+  return row >= 0 && row < size && col >= 0 && col < size;
+};
+
+const countDirectionalStones = (
+  board: readonly GomokuStone[],
+  size: number,
+  row: number,
+  col: number,
+  rowDelta: number,
+  colDelta: number,
+  stone: Exclude<GomokuStone, 'empty'>
+): number => {
+  let count = 0;
+  let nextRow = row + rowDelta;
+  let nextCol = col + colDelta;
+  while (isInsideGomoku(nextRow, nextCol, size) && board[nextRow * size + nextCol] === stone) {
+    count += 1;
+    nextRow += rowDelta;
+    nextCol += colDelta;
+  }
+  return count;
+};
+
+const hasFiveInRow = (board: readonly GomokuStone[], size: number, index: number, stone: Exclude<GomokuStone, 'empty'>): boolean => {
+  const row = Math.floor(index / size);
+  const col = index % size;
+  const directions: Array<[number, number]> = [
+    [1, 0],
+    [0, 1],
+    [1, 1],
+    [1, -1]
+  ];
+
+  return directions.some(([rowDelta, colDelta]) => {
+    const positiveCount = countDirectionalStones(board, size, row, col, rowDelta, colDelta, stone);
+    const negativeCount = countDirectionalStones(board, size, row, col, -rowDelta, -colDelta, stone);
+    return 1 + positiveCount + negativeCount >= 5;
+  });
+};
+
 export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
   const timeoutRefs = useRef<number[]>([]);
   const texasRoundRef = useRef<{ player: DealtCard[]; board: DealtCard[]; opponents: DealtCard[][] } | null>(null);
   const texasRevealLockedRef = useRef(false);
   const totalScoreRef = useRef(0);
 
-  const [nowSecond, setNowSecond] = useState(() => Math.floor(Date.now() / 1000));
   const [totalScore, setTotalScore] = useState(0);
   const [scoreHistory, setScoreHistory] = useState<readonly ScoreHistoryItem[]>([]);
 
@@ -432,20 +482,14 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
   });
 
   const [jackpotLastGain, setJackpotLastGain] = useState(0);
+  const [gomokuBoard, setGomokuBoard] = useState<readonly GomokuStone[]>(() => createGomokuBoard());
+  const [gomokuCurrentPlayer, setGomokuCurrentPlayer] = useState<'black' | 'white'>('black');
+  const [gomokuWinner, setGomokuWinner] = useState<GomokuWinner>(null);
+  const [gomokuMoves, setGomokuMoves] = useState(0);
 
   useEffect(() => {
     totalScoreRef.current = totalScore;
   }, [totalScore]);
-
-  useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      setNowSecond(Math.floor(Date.now() / 1000));
-    }, 1000);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, []);
 
   useEffect(() => {
     return () => {
@@ -453,13 +497,9 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
     };
   }, []);
 
-  const phaseSecond = nowSecond % JACKPOT_CYCLE_SECONDS;
-  const jackpotWindowOpen = phaseSecond < JACKPOT_WINDOW_SECONDS;
-  const jackpotCountdown = jackpotWindowOpen ? JACKPOT_WINDOW_SECONDS - phaseSecond : JACKPOT_CYCLE_SECONDS - phaseSecond;
-
-  const addScore = (nextGain: number, source: ScoreSource, minTotalScore?: number) => {
+  const addScore = (baseGain: number, source: ScoreSource, minTotalScore?: number): number => {
     const previousTotalScore = totalScoreRef.current;
-    const mergedScore = previousTotalScore + nextGain;
+    const mergedScore = previousTotalScore + baseGain;
     const nextTotalScore = typeof minTotalScore === 'number' ? Math.max(mergedScore, minTotalScore) : mergedScore;
     const appliedGain = nextTotalScore - previousTotalScore;
 
@@ -469,11 +509,14 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
     const historyItem: ScoreHistoryItem = {
       id: Date.now() + Math.floor(Math.random() * 1000),
       source,
+      baseGain,
+      modifier: appliedGain - baseGain,
       gain: appliedGain,
       total: nextTotalScore,
       time: new Date().toLocaleTimeString('en-US', { hour12: false })
     };
     setScoreHistory((items) => [historyItem, ...items].slice(0, 40));
+    return appliedGain;
   };
 
   const queueTimeout = (handler: () => void, delay: number) => {
@@ -526,11 +569,9 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
     setTexasOpponents(opponents.map((cards) => cards.map(formatCard)));
     setTexasHandCode(playerScore.handCode);
     setTexasOutcome(outcome);
-    const mergedScore = totalScore + gain;
-    const appliedGain = mergedScore < TEXAS_MIN_TOTAL_SCORE ? TEXAS_MIN_TOTAL_SCORE - totalScore : gain;
+    const appliedGain = addScore(gain, 'texas', TEXAS_MIN_TOTAL_SCORE);
     setTexasLastGain(appliedGain);
     setTexasCanReveal(false);
-    addScore(gain, 'texas', TEXAS_MIN_TOTAL_SCORE);
   };
 
   const playWheel = () => {
@@ -560,12 +601,12 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
 
       setWheelSpinning(false);
       setWheelSpins(nextSpinCount);
-      setWheelLastGain(result.gain);
+      const appliedGain = addScore(result.gain, 'wheel');
+      setWheelLastGain(appliedGain);
       setWheelZone(result.zone);
       setWheelZoneProbability(result.zone === 'neutral' ? 58 : result.probability);
       setWheelStreak((value) => (result.gain > 0 ? value + 1 : 0));
       setWheelHistory((items) => [historyItem, ...items].slice(0, 24));
-      addScore(result.gain, 'wheel');
     }, 960);
   };
 
@@ -589,13 +630,15 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
     const luckyColor = LUCKY_COLORS[seed % LUCKY_COLORS.length];
     const luckyTime = LUCKY_TIMES[seed % LUCKY_TIMES.length];
 
-    const nextGain = Math.round((overall + career + love + wealth) / 28);
+    const averageFortune = Math.round((overall + career + love + wealth) / 4);
+    const nextGain = averageFortune >= 85 ? 5 : averageFortune >= 72 ? 3 : -2;
 
+    const appliedGain = addScore(nextGain, 'fortune');
     setFortune({
       ready: true,
       locked: true,
       zodiac: normalizedZodiac,
-      lastGain: nextGain,
+      lastGain: appliedGain,
       overall,
       career,
       love,
@@ -604,20 +647,88 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
       luckyColor,
       luckyTime
     });
-
-    addScore(nextGain, 'fortune');
   };
 
-  const playJackpot = () => {
-    const baseGain = randomInt(20, 48);
-    const wheelBoost = randomInt(0, 18);
-    const fortuneBoost = fortune.ready ? Math.round(fortune.overall / 6) : 0;
-    const phaseBoost = jackpotWindowOpen ? randomInt(38, 90) : randomInt(0, 16);
-    const multiplier = jackpotWindowOpen ? 1.4 : 1;
-    const gain = Math.round((baseGain + wheelBoost + fortuneBoost + phaseBoost) * multiplier);
+  const resetJackpot = () => {
+    setGomokuBoard(createGomokuBoard());
+    setGomokuCurrentPlayer('black');
+    setGomokuWinner(null);
+    setGomokuMoves(0);
+    setJackpotLastGain(0);
+  };
 
-    setJackpotLastGain(gain);
-    addScore(gain, 'jackpot');
+  const playJackpot = (index: number) => {
+    if (index < 0 || index >= GOMOKU_SIZE * GOMOKU_SIZE || gomokuWinner) {
+      return;
+    }
+
+    const boardDraft = [...gomokuBoard];
+    if (boardDraft[index] !== 'empty') {
+      return;
+    }
+
+    boardDraft[index] = 'black';
+    let nextMoves = gomokuMoves + 1;
+
+    if (hasFiveInRow(boardDraft, GOMOKU_SIZE, index, 'black')) {
+      const gain = 6;
+      const appliedGain = addScore(gain, 'jackpot');
+      setGomokuBoard(boardDraft);
+      setGomokuCurrentPlayer('black');
+      setGomokuWinner('black');
+      setGomokuMoves(nextMoves);
+      setJackpotLastGain(appliedGain);
+      return;
+    }
+
+    const emptyCells = boardDraft
+      .map((stone, cellIndex) => ({ stone, cellIndex }))
+      .filter((cell) => cell.stone === 'empty')
+      .map((cell) => cell.cellIndex);
+
+    if (emptyCells.length === 0) {
+      const gain = 2;
+      const appliedGain = addScore(gain, 'jackpot');
+      setGomokuBoard(boardDraft);
+      setGomokuCurrentPlayer('black');
+      setGomokuWinner('draw');
+      setGomokuMoves(nextMoves);
+      setJackpotLastGain(appliedGain);
+      return;
+    }
+
+    const aiIndex = emptyCells[randomInt(0, emptyCells.length - 1)];
+    boardDraft[aiIndex] = 'white';
+    nextMoves += 1;
+
+    if (hasFiveInRow(boardDraft, GOMOKU_SIZE, aiIndex, 'white')) {
+      const gain = -4;
+      const appliedGain = addScore(gain, 'jackpot');
+      setGomokuBoard(boardDraft);
+      setGomokuCurrentPlayer('white');
+      setGomokuWinner('white');
+      setGomokuMoves(nextMoves);
+      setJackpotLastGain(appliedGain);
+      return;
+    }
+
+    const hasEmptyAfterAi = boardDraft.some((stone) => stone === 'empty');
+    if (!hasEmptyAfterAi) {
+      const gain = 2;
+      const appliedGain = addScore(gain, 'jackpot');
+      setGomokuBoard(boardDraft);
+      setGomokuCurrentPlayer('black');
+      setGomokuWinner('draw');
+      setGomokuMoves(nextMoves);
+      setJackpotLastGain(appliedGain);
+      return;
+    }
+
+    setGomokuBoard(boardDraft);
+    setGomokuCurrentPlayer('black');
+    setGomokuWinner(null);
+    setGomokuMoves(nextMoves);
+    setJackpotLastGain(0);
   };
 
   return {
@@ -641,12 +752,16 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
     wheelHistory,
     fortune,
     jackpotLastGain,
-    jackpotWindowOpen,
-    jackpotCountdown,
+    gomokuBoard,
+    gomokuSize: GOMOKU_SIZE,
+    gomokuCurrentPlayer,
+    gomokuWinner,
+    gomokuMoves,
     playTexas,
     revealTexas,
     playWheel,
     playFortune,
-    playJackpot
+    playJackpot,
+    resetJackpot
   };
 };

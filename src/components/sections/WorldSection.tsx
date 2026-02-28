@@ -321,14 +321,14 @@ export const WorldSection = () => {
                   <div className="wheel-rule-row zone-negative">
                     <span className="wheel-rule-item">
                       <i className="wheel-zone-chip zone-negative" />
-                      {message.world.play.wheelZoneNegative}: -5,-5,-10,-10
+                      {message.world.play.wheelZoneNegative}: -1,-2,-2,-3
                     </span>
                     <em>{message.world.play.wheelRateLabel} 20%</em>
                   </div>
                   <div className="wheel-rule-row zone-positive">
                     <span className="wheel-rule-item">
                       <i className="wheel-zone-chip zone-positive" />
-                      {message.world.play.wheelZonePositive}: +5,+5,+10,+10
+                      {message.world.play.wheelZonePositive}: +1,+2,+2,+3
                     </span>
                     <em>{message.world.play.wheelRateLabel} 20%</em>
                   </div>
@@ -342,14 +342,14 @@ export const WorldSection = () => {
                   <div className="wheel-rule-row zone-plus50">
                     <span className="wheel-rule-item">
                       <i className="wheel-zone-chip zone-plus50" />
-                      {message.world.play.wheelZonePlus50}: +50
+                      {message.world.play.wheelZonePlus50}: +10
                     </span>
                     <em>{message.world.play.wheelRateLabel} 0.5%</em>
                   </div>
                   <div className="wheel-rule-row zone-minus50">
                     <span className="wheel-rule-item">
                       <i className="wheel-zone-chip zone-minus50" />
-                      {message.world.play.wheelZoneMinus50}: -50
+                      {message.world.play.wheelZoneMinus50}: -8
                     </span>
                     <em>{message.world.play.wheelRateLabel} 1.5%</em>
                   </div>
@@ -462,19 +462,52 @@ export const WorldSection = () => {
 
           {activeStageIndex === 3 ? (
             <div className="world-machine world-machine-jackpot">
-              <div className={`jackpot-window ${gameplay.jackpotWindowOpen ? 'is-open' : ''}`}>
-                <span>{message.world.play.jackpotWindow}</span>
+              <div className={`jackpot-window ${gameplay.gomokuWinner === 'black' ? 'is-open' : ''}`}>
+                <span>{message.world.play.gomokuStatusLabel}</span>
                 <strong>
-                  {gameplay.jackpotWindowOpen ? message.world.play.jackpotOpen : message.world.play.jackpotClosed}
+                  {gameplay.gomokuWinner === 'black'
+                    ? message.world.play.gomokuOutcomeBlackWin
+                    : gameplay.gomokuWinner === 'white'
+                      ? message.world.play.gomokuOutcomeWhiteWin
+                      : gameplay.gomokuWinner === 'draw'
+                        ? message.world.play.gomokuOutcomeDraw
+                        : message.world.play.gomokuOutcomeIdle}
                 </strong>
-                <em>{gameplay.jackpotCountdown}s</em>
+                <em>
+                  {message.world.play.gomokuMovesLabel}: {gameplay.gomokuMoves}
+                </em>
               </div>
-              <button type="button" className="world-action-button" onClick={() => runFocusedAction(gameplay.playJackpot)}>
-                {message.world.play.jackpotAction}
+              <div className="gomoku-board" style={{ gridTemplateColumns: `repeat(${gameplay.gomokuSize}, minmax(0, 1fr))` }}>
+                {gameplay.gomokuBoard.map((stone, index) => (
+                  <button
+                    key={`gomoku-${index}`}
+                    type="button"
+                    className={`gomoku-cell ${stone === 'black' ? 'is-black' : stone === 'white' ? 'is-white' : ''}`}
+                    disabled={stone !== 'empty' || gameplay.gomokuWinner !== null}
+                    onClick={() => runFocusedAction(() => gameplay.playJackpot(index))}
+                  />
+                ))}
+              </div>
+              <button type="button" className="world-action-button world-action-button-alt" onClick={gameplay.resetJackpot}>
+                {message.world.play.gomokuResetAction}
               </button>
               <div className="world-machine-metrics">
                 <span>
-                  {message.world.play.lastGain}: +{gameplay.jackpotLastGain}
+                  {message.world.play.lastGain}: {gameplay.jackpotLastGain > 0 ? `+${gameplay.jackpotLastGain}` : gameplay.jackpotLastGain}
+                </span>
+                <span>
+                  {message.world.play.gomokuStatusLabel}:{' '}
+                  {gameplay.gomokuWinner === 'black'
+                    ? message.world.play.gomokuOutcomeBlackWin
+                    : gameplay.gomokuWinner === 'white'
+                      ? message.world.play.gomokuOutcomeWhiteWin
+                      : gameplay.gomokuWinner === 'draw'
+                        ? message.world.play.gomokuOutcomeDraw
+                        : message.world.play.gomokuOutcomeIdle}
+                </span>
+                <span>
+                  {message.world.play.gomokuTurnLabel}:{' '}
+                  {gameplay.gomokuCurrentPlayer === 'black' ? message.world.play.gomokuBlackLabel : message.world.play.gomokuWhiteLabel}
                 </span>
               </div>
             </div>
