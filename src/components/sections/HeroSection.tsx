@@ -1,4 +1,5 @@
 import { observer } from 'mobx-react-lite';
+import { HeroLinkIcon } from '../common/HeroLinkIcon';
 import { useI18n } from '../../i18n/locale-context';
 import { useRootStore } from '../../stores/root-store-context';
 import { AnimatedSignature } from '../effects/AnimatedSignature';
@@ -27,6 +28,7 @@ export const HeroSection = observer(() => {
         <HolidayCountdown />
         <div className="hero-link-group">
           <a className="hero-link" href="#worlds">
+            <HeroLinkIcon name="start" />
             {message.hero.startButton}
           </a>
           <a
@@ -35,7 +37,26 @@ export const HeroSection = observer(() => {
             target="_blank"
             rel="noreferrer"
           >
+            <HeroLinkIcon name="knowledge" />
             {message.hero.knowledgeButton}
+          </a>
+          <a
+            className="hero-link hero-link-secondary"
+            href="https://blog.csdn.net/u013243347"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <HeroLinkIcon name="blog" />
+            {message.hero.blogButton}
+          </a>
+          <a
+            className="hero-link hero-link-secondary"
+            href="https://github.com/robbiemie"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <HeroLinkIcon name="github" />
+            {message.hero.githubButton}
           </a>
         </div>
       </div>
