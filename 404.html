@@ -7,7 +7,7 @@
       const locationPath = window.location.pathname;
       const locationSearch = window.location.search;
       const locationHash = window.location.hash;
-      const redirectTarget = '/?redirect=' + encodeURIComponent(locationPath + locationSearch + locationHash);
+      const redirectTarget = '/public/?redirect=' + encodeURIComponent(locationPath + locationSearch + locationHash);
       window.location.replace(redirectTarget);
     </script>
   </head>
