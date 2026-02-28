@@ -13,6 +13,7 @@ export const WorldSection = () => {
   const [wheelHistoryVisible, setWheelHistoryVisible] = useState(false);
   const [isScoreHistoryVisible, setIsScoreHistoryVisible] = useState(false);
   const [isGameplayFocused, setIsGameplayFocused] = useState(false);
+  const [ruleModalType, setRuleModalType] = useState<'texas' | 'wheel' | null>(null);
   const [isRewardUnlocked, setIsRewardUnlocked] = useState(false);
   const [isRewardModalOpen, setIsRewardModalOpen] = useState(false);
   const worldSectionRef = useRef<HTMLElement | null>(null);
@@ -218,28 +219,29 @@ export const WorldSection = () => {
                 </div>
               </div>
 
-              <div className="texas-row">
-                <p>{message.world.play.texasPlayerLabel}</p>
-                <div className="texas-cards texas-cards-player">
-                  {gameplay.texasPlayerCards.map((card, index) => (
-                    <span key={`${card}-${index}`} className={card.includes('♥') || card.includes('♦') ? 'is-red' : ''}>
-                      {card}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
               <div className="texas-opponents">
                 {gameplay.texasOpponents.map((cards, playerIndex) => (
                   <div key={`${playerIndex + 1}`} className="texas-row">
                     <p>
                       {message.world.play.texasOpponentLabel} {playerIndex + 1}
+                      {gameplay.texasWinningOpponentIndices.includes(playerIndex) ? <span className="texas-win-tag">WIN</span> : null}
+                      <span className="texas-hand-badge">
+                        {gameplay.texasOpponentHandCodes[playerIndex]
+                          ? message.world.play.handNames[gameplay.texasOpponentHandCodes[playerIndex] as keyof typeof message.world.play.handNames]
+                          : message.world.play.texasHidden}
+                      </span>
                     </p>
                     <div className="texas-cards texas-cards-opponent">
                       {cards.map((card, cardIndex) => (
                         <span
                           key={`${card}-${cardIndex}`}
-                          className={card.includes('♥') || card.includes('♦') ? 'is-red' : card === '🂠' ? 'is-hidden' : ''}
+                          className={`${card.includes('♥') || card.includes('♦') ? 'is-red' : ''} ${card === '🂠' ? 'is-hidden' : ''} ${
+                            gameplay.texasHighlightOpponentHandIndices[playerIndex]?.includes(cardIndex)
+                              ? playerIndex === 0
+                                ? 'is-highlight-opponent-1'
+                                : 'is-highlight-opponent-2'
+                              : ''
+                          }`}
                         >
                           {card === '🂠' ? message.world.play.texasHidden : card}
                         </span>
@@ -249,19 +251,54 @@ export const WorldSection = () => {
                 ))}
               </div>
 
+              <div className="texas-row texas-row-player-focus">
+                <p>
+                  {message.world.play.texasPlayerLabel}
+                  {gameplay.texasOutcome === 'win' || gameplay.texasOutcome === 'tie' ? <span className="texas-win-tag">WIN</span> : null}
+                  <span className="texas-hand-badge">
+                    {gameplay.texasOutcome === 'pending' || gameplay.texasOutcome === 'fold'
+                      ? message.world.play.texasHidden
+                      : message.world.play.handNames[gameplay.texasHandCode]}
+                  </span>
+                </p>
+                <div className="texas-cards texas-cards-player">
+                  {gameplay.texasPlayerCards.map((card, index) => (
+                    <span
+                      key={`${card}-${index}`}
+                      className={`${card.includes('♥') || card.includes('♦') ? 'is-red' : ''} ${
+                        gameplay.texasHighlightPlayerHandIndices.includes(index) ? 'is-highlight-player' : ''
+                      }`}
+                    >
+                      {card}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
               <div className="world-machine-actions">
-                <button type="button" className="world-action-button" onClick={() => runFocusedAction(gameplay.playTexas)}>
+                <button type="button" className="world-action-button action-deal" onClick={() => runFocusedAction(gameplay.playTexas)}>
                   {message.world.play.texasAction}
                 </button>
                 <button
                   type="button"
-                  className="world-action-button world-action-button-alt"
+                  className="world-action-button world-action-button-alt action-reveal"
                   disabled={!gameplay.texasCanReveal}
                   onClick={gameplay.revealTexas}
                 >
                   {message.world.play.texasRevealAction}
                 </button>
+                <button
+                  type="button"
+                  className="world-action-button world-action-button-alt action-fold"
+                  disabled={!gameplay.texasCanReveal}
+                  onClick={gameplay.foldTexas}
+                >
+                  {message.world.play.texasFoldAction}
+                </button>
               </div>
+              <button type="button" className="world-action-button world-action-button-alt world-rule-button action-rule" onClick={() => setRuleModalType('texas')}>
+                {message.world.play.ruleAction}
+              </button>
 
               <div className="texas-summary">
                 <span>
@@ -275,7 +312,9 @@ export const WorldSection = () => {
                       ? message.world.play.texasOutcomeLose
                       : gameplay.texasOutcome === 'tie'
                         ? message.world.play.texasOutcomeTie
-                        : message.world.play.texasHidden}
+                        : gameplay.texasOutcome === 'fold'
+                          ? message.world.play.texasOutcomeFold
+                          : message.world.play.texasHidden}
                 </span>
               </div>
               <div className="world-machine-metrics">
@@ -301,7 +340,7 @@ export const WorldSection = () => {
               <div className="wheel-action-stack">
                 <button
                   type="button"
-                  className="world-action-button"
+                  className="world-action-button action-spin"
                   disabled={gameplay.wheelSpinning}
                   onClick={() => runFocusedAction(gameplay.playWheel)}
                 >
@@ -309,51 +348,18 @@ export const WorldSection = () => {
                 </button>
                 <button
                   type="button"
-                  className="world-action-button world-action-button-alt wheel-history-trigger"
+                  className="world-action-button world-action-button-alt wheel-history-trigger action-history"
                   onClick={() => setWheelHistoryVisible((visible) => !visible)}
                 >
                   {message.world.play.wheelHistoryAction}
                 </button>
-              </div>
-              <div className="wheel-rule-board">
-                <p>{message.world.play.wheelRuleTitle}</p>
-                <div className="wheel-rule-grid">
-                  <div className="wheel-rule-row zone-negative">
-                    <span className="wheel-rule-item">
-                      <i className="wheel-zone-chip zone-negative" />
-                      {message.world.play.wheelZoneNegative}: -1,-2,-2,-3
-                    </span>
-                    <em>{message.world.play.wheelRateLabel} 20%</em>
-                  </div>
-                  <div className="wheel-rule-row zone-positive">
-                    <span className="wheel-rule-item">
-                      <i className="wheel-zone-chip zone-positive" />
-                      {message.world.play.wheelZonePositive}: +1,+2,+2,+3
-                    </span>
-                    <em>{message.world.play.wheelRateLabel} 20%</em>
-                  </div>
-                  <div className="wheel-rule-row zone-neutral">
-                    <span className="wheel-rule-item">
-                      <i className="wheel-zone-chip zone-neutral" />
-                      {message.world.play.wheelZoneNeutral}: 0
-                    </span>
-                    <em>{message.world.play.wheelRateLabel} 58%</em>
-                  </div>
-                  <div className="wheel-rule-row zone-plus50">
-                    <span className="wheel-rule-item">
-                      <i className="wheel-zone-chip zone-plus50" />
-                      {message.world.play.wheelZonePlus50}: +10
-                    </span>
-                    <em>{message.world.play.wheelRateLabel} 0.5%</em>
-                  </div>
-                  <div className="wheel-rule-row zone-minus50">
-                    <span className="wheel-rule-item">
-                      <i className="wheel-zone-chip zone-minus50" />
-                      {message.world.play.wheelZoneMinus50}: -8
-                    </span>
-                    <em>{message.world.play.wheelRateLabel} 1.5%</em>
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  className="world-action-button world-action-button-alt world-rule-button action-rule"
+                  onClick={() => setRuleModalType('wheel')}
+                >
+                  {message.world.play.ruleAction}
+                </button>
               </div>
               <div className="world-machine-metrics">
                 <span>
@@ -363,13 +369,7 @@ export const WorldSection = () => {
                   {message.world.play.wheelSpins}: {gameplay.wheelSpins}
                 </span>
                 <span>
-                  {message.world.play.wheelStreak}: {gameplay.wheelStreak}
-                </span>
-                <span>
                   {message.world.play.wheelZoneLabel}: {wheelTierText}
-                </span>
-                <span>
-                  {message.world.play.wheelRateLabel}: {gameplay.wheelZoneProbability}%
                 </span>
               </div>
               {wheelHistoryVisible ? (
@@ -417,7 +417,7 @@ export const WorldSection = () => {
               <p className="fortune-hint">{gameplay.fortune.locked ? message.world.play.zodiacLockedHint : message.world.play.zodiacSelectHint}</p>
               <button
                 type="button"
-                className="world-action-button"
+                className="world-action-button action-fortune"
                 disabled={gameplay.fortune.locked || !selectedZodiac}
                 onClick={() => runFocusedAction(() => gameplay.playFortune(selectedZodiac))}
               >
@@ -488,7 +488,7 @@ export const WorldSection = () => {
                   />
                 ))}
               </div>
-              <button type="button" className="world-action-button world-action-button-alt" onClick={gameplay.resetJackpot}>
+              <button type="button" className="world-action-button world-action-button-alt action-reset" onClick={gameplay.resetJackpot}>
                 {message.world.play.gomokuResetAction}
               </button>
               <div className="world-machine-metrics">
@@ -529,6 +529,21 @@ export const WorldSection = () => {
             <h4>{message.world.play.rewardTitle}</h4>
             <p>{message.world.play.rewardDescription}</p>
             <img src={rewardImageSrc} alt={message.world.play.rewardTitle} loading="lazy" />
+          </section>
+        </div>
+      ) : null}
+      {ruleModalType ? (
+        <div className="rule-modal-overlay" role="presentation" onClick={() => setRuleModalType(null)}>
+          <section className="rule-modal" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+            <button type="button" className="rule-modal-close" onClick={() => setRuleModalType(null)}>
+              {message.world.play.rewardClose}
+            </button>
+            <h4>{ruleModalType === 'texas' ? message.world.play.texasRuleTitle : message.world.play.wheelRuleTitle}</h4>
+            <ul>
+              {(ruleModalType === 'texas' ? message.world.play.texasRuleItems : message.world.play.wheelRuleItems).map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
           </section>
         </div>
       ) : null}

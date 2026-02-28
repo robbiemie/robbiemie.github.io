@@ -17,6 +17,7 @@ type WorldPlayText = {
   spinning: string;
   texasAction: string;
   texasRevealAction: string;
+  texasFoldAction: string;
   wheelAction: string;
   fortuneAction: string;
   jackpotAction: string;
@@ -30,6 +31,7 @@ type WorldPlayText = {
   texasOutcomeWin: string;
   texasOutcomeLose: string;
   texasOutcomeTie: string;
+  texasOutcomeFold: string;
   zodiacLabel: string;
   zodiacPlaceholder: string;
   zodiacSelectHint: string;
@@ -60,6 +62,10 @@ type WorldPlayText = {
   wheelSpins: string;
   wheelStreak: string;
   wheelRuleTitle: string;
+  ruleAction: string;
+  texasRuleTitle: string;
+  texasRuleItems: string[];
+  wheelRuleItems: string[];
   wheelZoneLabel: string;
   wheelZoneNegative: string;
   wheelZonePositive: string;
@@ -160,50 +166,50 @@ export const messages: Record<Locale, Messages> = {
     },
     world: {
       kicker: 'Choose A World',
-      title: 'Four simple stages. Instant fun. Hard to stop.',
+      title: 'Four stages. Quick to learn, fun to replay.',
       stageLabel: 'Stage',
       detailLabel: 'Stage Rules',
       items: [
-        { title: "Texas Hold'em", subtitle: 'Deal and score in one tap. Easy to understand.' },
-        { title: 'Lucky Wheel', subtitle: 'Spin fast, hit rewards, chase streaks.' },
-        { title: 'Zodiac Fortune', subtitle: 'Pick one zodiac sign to unlock today fortune.' },
-        { title: 'Gomoku Duel', subtitle: 'Place stones, connect five, and beat the AI.' }
+        { title: "Texas Hold'em", subtitle: 'Deal fast. Compare hands. Score.' },
+        { title: 'Lucky Wheel', subtitle: 'One spin. One result. Keep going.' },
+        { title: 'Zodiac Fortune', subtitle: 'Pick once. Reveal today luck.' },
+        { title: 'Gomoku Duel', subtitle: 'Connect five before the AI.' }
       ],
       details: [
         {
-          title: "Texas Hold'em: Fast Showdown",
-          description: 'Deal 2 hole cards + 3 board cards, then score by poker hand strength.',
+          title: "Texas Hold'em: Quick Hand",
+          description: 'Deal, reveal, and score by hand rank.',
           highlights: [
-            'Single button flow: tap to deal a full hand.',
-            'Readable hand ranking with instant score payout.',
-            'Strong hands trigger bigger rewards and excitement.'
+            'One-tap deal flow.',
+            'Clear hand ranking.',
+            'Better hand, higher score.'
           ]
         },
         {
-          title: 'Lucky Wheel: Near-Miss Loop',
-          description: 'Wheel outcomes use frequent near-miss moments to encourage one more spin.',
+          title: 'Lucky Wheel: Fast Loop',
+          description: 'Quick spins with clear risk and reward.',
           highlights: [
-            '3-second spin cycle, no dead time.',
-            'Streak meter fills every spin, win or lose.',
-            'Light bonuses every 3 spins, big bonus every 10.'
+            'Short spin cycle.',
+            'Visible probability zones.',
+            'Small wins, rare big hits.'
           ]
         },
         {
-          title: 'Zodiac Fortune: One-Time Choice',
-          description: 'Choose one zodiac sign once, then reveal your daily fortune and lucky hints.',
+          title: 'Zodiac Fortune: One Pick',
+          description: 'Choose one zodiac sign and lock it.',
           highlights: [
-            'Single-choice zodiac selector, easy to start.',
-            'One-time lock makes the choice meaningful.',
-            'Clear fortune dimensions: career, love, wealth.'
+            'Simple selector.',
+            'One-time choice.',
+            'Career, love, wealth.'
           ]
         },
         {
-          title: 'Gomoku Duel: Light Strategy',
-          description: 'Classic five-in-a-row. You place black stones, AI places white stones.',
+          title: 'Gomoku Duel: Simple Tactics',
+          description: 'You play black. AI plays white.',
           highlights: [
-            'One tap places one stone, rules are simple.',
-            'Connect five first to win this round.',
-            'Win, lose, or draw all have clear score feedback.'
+            'Tap to place.',
+            'Five in a row wins.',
+            'Win, lose, draw scoring.'
           ]
         }
       ],
@@ -213,6 +219,7 @@ export const messages: Record<Locale, Messages> = {
         spinning: 'Spinning...',
         texasAction: 'Deal Cards',
         texasRevealAction: 'Reveal Showdown',
+        texasFoldAction: 'Fold',
         wheelAction: 'Spin Wheel',
         fortuneAction: 'Generate Fortune',
         jackpotAction: 'Restart Board',
@@ -226,10 +233,11 @@ export const messages: Record<Locale, Messages> = {
         texasOutcomeWin: 'You Win',
         texasOutcomeLose: 'You Lose',
         texasOutcomeTie: 'Tie',
+        texasOutcomeFold: 'Folded',
         zodiacLabel: 'Zodiac Sign',
         zodiacPlaceholder: 'Select one zodiac sign',
-        zodiacSelectHint: 'You can choose only once. Confirm before generating.',
-        zodiacLockedHint: 'Zodiac already selected. This round is locked.',
+        zodiacSelectHint: 'One pick only. Confirm first.',
+        zodiacLockedHint: 'Locked. You cannot change it now.',
         zodiacOptions: {
           rat: 'Rat',
           ox: 'Ox',
@@ -256,6 +264,20 @@ export const messages: Record<Locale, Messages> = {
         wheelSpins: 'Wheel Spins',
         wheelStreak: 'Hot Streak',
         wheelRuleTitle: 'Wheel Rules',
+        ruleAction: 'Rules',
+        texasRuleTitle: "Texas Rules",
+        texasRuleItems: [
+          'Hand rank (high to low): Straight Flush > Four of a Kind > Full House > Flush > Straight > Three of a Kind > Two Pair > Pair > High Card.',
+          'Flush: five cards of the same suit. Straight: five consecutive ranks. Straight Flush: both flush and straight.',
+          'Four of a Kind: four cards of the same rank. Full House: three of a kind + one pair.',
+          'Three of a Kind: three same-rank cards. Two Pair: two different pairs. Pair: one pair.',
+          'Base score by hand: 11, 9, 7, 6, 5, 4, 3, 2, 1.',
+          'Outcome multipliers: Win x1.2, Tie x0.6, Lose x-0.8.',
+          'Final score = round(Base x Multiplier).',
+          'Minimum per round: win/tie at least +1, lose at most -1.',
+          'Total score floor for Texas: -20.'
+        ],
+        wheelRuleItems: ['Reward zone: +1 to +3 (20%)', 'Penalty zone: -1 to -3 (20%)', 'Neutral zone: 0 (58%)', 'Rare zone: +10 or -8 (2%)'],
         wheelZoneLabel: 'Hit Zone',
         wheelZoneNegative: 'Penalty Zone',
         wheelZonePositive: 'Reward Zone',
@@ -337,35 +359,35 @@ export const messages: Record<Locale, Messages> = {
     },
     world: {
       kicker: '选择一个世界',
-      title: '四个超简单关卡，上手即爽，越玩越上头。',
+      title: '四个关卡，易上手，耐玩。',
       stageLabel: '关卡',
       detailLabel: '关卡规则',
       items: [
-        { title: '德州扑克牌', subtitle: '一键发牌就能玩，规则直观易懂。' },
-        { title: '幸运转盘', subtitle: '快速转动拿奖励，连击越转越爽。' },
-        { title: '生肖运势', subtitle: '选择一个生肖，生成今日专属运势。' },
-        { title: '五子棋对弈', subtitle: '落子连成五子，和 AI 进行轻策略对局。' }
+        { title: '德州扑克牌', subtitle: '快速发牌，直接结算。' },
+        { title: '幸运转盘', subtitle: '一转一结算，节奏快。' },
+        { title: '生肖运势', subtitle: '一次选择，今日解读。' },
+        { title: '五子棋对弈', subtitle: '先连五子即获胜。' }
       ],
       details: [
         {
-          title: '德州扑克牌：快速摊牌',
-          description: '每次发 2 张手牌 + 3 张公共牌，按牌型强度即时结算得分。',
-          highlights: ['只需一个按钮：点击发完整牌局。', '牌型结果清晰可读，反馈直接。', '强牌触发更高奖励，刺激继续挑战。']
+          title: '德州扑克牌：快节奏',
+          description: '发牌、开牌、按牌型结算。',
+          highlights: ['一键发牌。', '牌型清晰。', '强牌高分。']
         },
         {
-          title: '幸运转盘：擦边上瘾回路',
-          description: '通过高频“差一点就中”的结果设计，持续刺激玩家再来一次。',
-          highlights: ['每次转盘约 3 秒，几乎无等待。', '无论输赢都累积连击能量。', '每 3 次给小奖，每 10 次触发大奖。']
+          title: '幸运转盘：快循环',
+          description: '高频结算，奖惩直观。',
+          highlights: ['转动快。', '区间清晰。', '小奖常见，大奖稀有。']
         },
         {
-          title: '生肖运势：一次抉择',
-          description: '选择一次生肖后立即生成当日运势，用单次选择提升仪式感。',
-          highlights: ['生肖选择简单直观，一键生成。', '一次选择后锁定，反馈更有代入感。', '运势维度清晰：事业、感情、财运。']
+          title: '生肖运势：单次选择',
+          description: '选择一个生肖后即锁定。',
+          highlights: ['选择简单。', '仅可一次。', '维度清楚。']
         },
         {
-          title: '五子棋对弈：轻策略休闲',
-          description: '经典五子棋规则，你执黑先手，AI 执白跟随落子。',
-          highlights: ['单击棋盘即可落子，上手非常快。', '先连成五子即可获胜。', '胜负平都有明确得分反馈。']
+          title: '五子棋对弈：轻策略',
+          description: '你执黑先手，AI 执白应对。',
+          highlights: ['点击落子。', '连五即胜。', '胜负平都有分。']
         }
       ],
       play: {
@@ -374,6 +396,7 @@ export const messages: Record<Locale, Messages> = {
         spinning: '转动中...',
         texasAction: '发牌开局',
         texasRevealAction: '开牌比大小',
+        texasFoldAction: '弃牌',
         wheelAction: '转动转盘',
         fortuneAction: '生成运势',
         jackpotAction: '重开棋盘',
@@ -387,10 +410,11 @@ export const messages: Record<Locale, Messages> = {
         texasOutcomeWin: '你赢了',
         texasOutcomeLose: '你输了',
         texasOutcomeTie: '平局',
+        texasOutcomeFold: '已弃牌',
         zodiacLabel: '生肖',
         zodiacPlaceholder: '请选择一个生肖',
-        zodiacSelectHint: '生肖只能选择一次，请确认后再生成。',
-        zodiacLockedHint: '你已选择生肖，本轮不可重复选择。',
+        zodiacSelectHint: '生肖只可选一次，请先确认。',
+        zodiacLockedHint: '已锁定，当前不可更改。',
         zodiacOptions: {
           rat: '鼠',
           ox: '牛',
@@ -417,6 +441,20 @@ export const messages: Record<Locale, Messages> = {
         wheelSpins: '转盘次数',
         wheelStreak: '连击热度',
         wheelRuleTitle: '转盘规则',
+        ruleAction: '查看规则',
+        texasRuleTitle: '德州规则',
+        texasRuleItems: [
+          '牌型大小（从大到小）：同花顺 > 四条 > 葫芦 > 同花 > 顺子 > 三条 > 两对 > 一对 > 高牌。',
+          '同花：5 张花色相同。顺子：5 张点数连续。同花顺：同时满足同花和顺子。',
+          '四条：4 张点数相同。葫芦：三条 + 一对。',
+          '三条：3 张点数相同。两对：两组不同的对子。一对：1 组对子。',
+          '牌型基础分依次为：11、9、7、6、5、4、3、2、1。',
+          '胜负系数：赢局 x1.2，平局 x0.6，输局 x-0.8。',
+          '单局得分 = round(基础分 x 系数)。',
+          '单局最小保护：赢/平至少 +1，输局最多 -1。',
+          '德州总分下限保护：-20。'
+        ],
+        wheelRuleItems: ['加分区：+1 到 +3（20%）', '扣分区：-1 到 -3（20%）', '不变区：0（58%）', '稀有区：+10 或 -8（2%）'],
         wheelZoneLabel: '命中区间',
         wheelZoneNegative: '扣分区',
         wheelZonePositive: '加分区',

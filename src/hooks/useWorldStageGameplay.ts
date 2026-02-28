@@ -67,7 +67,7 @@ export type TexasHandCode =
   | 'four_kind'
   | 'straight_flush';
 
-type TexasOutcome = 'pending' | 'win' | 'lose' | 'tie';
+type TexasOutcome = 'pending' | 'win' | 'lose' | 'tie' | 'fold';
 
 type FortuneState = {
   ready: boolean;
@@ -89,6 +89,10 @@ type GameplayState = {
   texasPlayerCards: readonly string[];
   texasBoardCards: readonly string[];
   texasOpponents: readonly string[][];
+  texasHighlightPlayerHandIndices: readonly number[];
+  texasHighlightOpponentHandIndices: readonly number[][];
+  texasOpponentHandCodes: readonly (TexasHandCode | null)[];
+  texasWinningOpponentIndices: readonly number[];
   texasLastGain: number;
   texasHands: number;
   texasHandCode: TexasHandCode;
@@ -114,6 +118,7 @@ type GameplayState = {
 type GameplayActions = {
   playTexas: () => void;
   revealTexas: () => void;
+  foldTexas: () => void;
   playWheel: () => void;
   playFortune: (zodiac: string) => void;
   playJackpot: (index: number) => void;
@@ -129,6 +134,11 @@ type HandScore = {
   handCode: TexasHandCode;
   rankLevel: number;
   kickers: number[];
+};
+
+type BestHandResult = {
+  score: HandScore;
+  indices: number[];
 };
 
 const TEXAS_HAND_BASE_GAIN: Record<TexasHandCode, number> = {
@@ -147,7 +157,8 @@ const TEXAS_OUTCOME_MULTIPLIER: Record<TexasOutcome, number> = {
   pending: 0,
   win: 1.2,
   tie: 0.6,
-  lose: -0.8
+  lose: -0.8,
+  fold: 0
 };
 
 const TEXAS_MIN_TOTAL_SCORE = -20;
@@ -265,8 +276,9 @@ const compareHands = (left: HandScore, right: HandScore): number => {
   return 0;
 };
 
-const buildBestScoreFromSeven = (cards: DealtCard[]): HandScore => {
+const buildBestHandFromSeven = (cards: DealtCard[]): BestHandResult => {
   let bestScore = evaluateFiveCards(cards.slice(0, 5));
+  let bestIndices = [0, 1, 2, 3, 4];
 
   for (let first = 0; first < cards.length - 4; first += 1) {
     for (let second = first + 1; second < cards.length - 3; second += 1) {
@@ -276,6 +288,7 @@ const buildBestScoreFromSeven = (cards: DealtCard[]): HandScore => {
             const nextScore = evaluateFiveCards([cards[first], cards[second], cards[third], cards[fourth], cards[fifth]]);
             if (compareHands(nextScore, bestScore) > 0) {
               bestScore = nextScore;
+              bestIndices = [first, second, third, fourth, fifth];
             }
           }
         }
@@ -283,7 +296,7 @@ const buildBestScoreFromSeven = (cards: DealtCard[]): HandScore => {
     }
   }
 
-  return bestScore;
+  return { score: bestScore, indices: bestIndices };
 };
 
 const formatCard = (card: DealtCard): string => {
@@ -440,6 +453,62 @@ const hasFiveInRow = (board: readonly GomokuStone[], size: number, index: number
   });
 };
 
+const findImmediateWinningMove = (board: readonly GomokuStone[], size: number, stone: Exclude<GomokuStone, 'empty'>): number | null => {
+  for (let index = 0; index < board.length; index += 1) {
+    if (board[index] !== 'empty') {
+      continue;
+    }
+    const trialBoard = [...board];
+    trialBoard[index] = stone;
+    if (hasFiveInRow(trialBoard, size, index, stone)) {
+      return index;
+    }
+  }
+  return null;
+};
+
+const countNeighborStones = (board: readonly GomokuStone[], size: number, row: number, col: number, stone: Exclude<GomokuStone, 'empty'>): number => {
+  let count = 0;
+  for (let rowOffset = -1; rowOffset <= 1; rowOffset += 1) {
+    for (let colOffset = -1; colOffset <= 1; colOffset += 1) {
+      if (rowOffset === 0 && colOffset === 0) {
+        continue;
+      }
+      const nextRow = row + rowOffset;
+      const nextCol = col + colOffset;
+      if (isInsideGomoku(nextRow, nextCol, size) && board[nextRow * size + nextCol] === stone) {
+        count += 1;
+      }
+    }
+  }
+  return count;
+};
+
+const pickStrategicAiMove = (board: readonly GomokuStone[], size: number): number => {
+  const center = Math.floor(size / 2);
+  let bestIndex = -1;
+  let bestScore = Number.NEGATIVE_INFINITY;
+
+  for (let index = 0; index < board.length; index += 1) {
+    if (board[index] !== 'empty') {
+      continue;
+    }
+    const row = Math.floor(index / size);
+    const col = index % size;
+    const centerDistance = Math.abs(row - center) + Math.abs(col - center);
+    const whiteNeighbors = countNeighborStones(board, size, row, col, 'white');
+    const blackNeighbors = countNeighborStones(board, size, row, col, 'black');
+    const score = whiteNeighbors * 6 + blackNeighbors * 5 - centerDistance;
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestIndex = index;
+    }
+  }
+
+  return bestIndex;
+};
+
 export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
   const timeoutRefs = useRef<number[]>([]);
   const texasRoundRef = useRef<{ player: DealtCard[]; board: DealtCard[]; opponents: DealtCard[][] } | null>(null);
@@ -452,6 +521,10 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
   const [texasPlayerCards, setTexasPlayerCards] = useState<readonly string[]>([]);
   const [texasBoardCards, setTexasBoardCards] = useState<readonly string[]>([]);
   const [texasOpponents, setTexasOpponents] = useState<readonly string[][]>([]);
+  const [texasHighlightPlayerHandIndices, setTexasHighlightPlayerHandIndices] = useState<readonly number[]>([]);
+  const [texasHighlightOpponentHandIndices, setTexasHighlightOpponentHandIndices] = useState<readonly number[][]>([]);
+  const [texasOpponentHandCodes, setTexasOpponentHandCodes] = useState<readonly (TexasHandCode | null)[]>([]);
+  const [texasWinningOpponentIndices, setTexasWinningOpponentIndices] = useState<readonly number[]>([]);
   const [texasLastGain, setTexasLastGain] = useState(0);
   const [texasHands, setTexasHands] = useState(0);
   const [texasHandCode, setTexasHandCode] = useState<TexasHandCode>('high_card');
@@ -541,6 +614,10 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
     setTexasPlayerCards(player.map(formatCard));
     setTexasBoardCards(board.map(formatCard));
     setTexasOpponents(opponents.map(() => ['🂠', '🂠']));
+    setTexasHighlightPlayerHandIndices([]);
+    setTexasHighlightOpponentHandIndices([[], []]);
+    setTexasOpponentHandCodes([null, null]);
+    setTexasWinningOpponentIndices([]);
     setTexasHandCode('high_card');
     setTexasOutcome('pending');
     setTexasLastGain(0);
@@ -556,21 +633,46 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
     texasRevealLockedRef.current = true;
 
     const { player, board, opponents } = texasRoundRef.current;
-    const playerScore = buildBestScoreFromSeven([...player, ...board]);
-    const opponentScores = opponents.map((opponent) => buildBestScoreFromSeven([...opponent, ...board]));
+    const playerBest = buildBestHandFromSeven([...player, ...board]);
+    const playerScore = playerBest.score;
+    const opponentBestResults = opponents.map((opponent) => buildBestHandFromSeven([...opponent, ...board]));
+    const opponentScores = opponentBestResults.map((result) => result.score);
 
     const bestOpponentScore = opponentScores.reduce((best, current) => (compareHands(current, best) > 0 ? current : best));
     const compareWithBestOpponent = compareHands(playerScore, bestOpponentScore);
     const hasOpponentEqualPlayer = opponentScores.some((score) => compareHands(score, playerScore) === 0);
+    const winningOpponentIndices = opponentScores
+      .map((score, index) => ({ score, index }))
+      .filter((entry) => compareHands(entry.score, bestOpponentScore) === 0)
+      .map((entry) => entry.index);
 
     const outcome: TexasOutcome = compareWithBestOpponent > 0 ? 'win' : compareWithBestOpponent < 0 ? 'lose' : hasOpponentEqualPlayer ? 'tie' : 'win';
     const gain = calculateTexasGain(playerScore.handCode, outcome);
 
     setTexasOpponents(opponents.map((cards) => cards.map(formatCard)));
     setTexasHandCode(playerScore.handCode);
+    setTexasHighlightPlayerHandIndices(playerBest.score.handCode === 'high_card' ? [] : playerBest.indices.filter((index) => index < 2));
+    setTexasHighlightOpponentHandIndices(
+      opponentBestResults.map((result) => (result.score.handCode === 'high_card' ? [] : result.indices.filter((index) => index < 2)))
+    );
+    setTexasOpponentHandCodes(opponentBestResults.map((result) => result.score.handCode));
+    setTexasWinningOpponentIndices(outcome === 'win' ? [] : winningOpponentIndices);
     setTexasOutcome(outcome);
     const appliedGain = addScore(gain, 'texas', TEXAS_MIN_TOTAL_SCORE);
     setTexasLastGain(appliedGain);
+    setTexasCanReveal(false);
+  };
+
+  const foldTexas = () => {
+    if (!texasCanReveal) {
+      return;
+    }
+    setTexasOutcome('fold');
+    setTexasHighlightPlayerHandIndices([]);
+    setTexasHighlightOpponentHandIndices([[], []]);
+    setTexasOpponentHandCodes([null, null]);
+    setTexasWinningOpponentIndices([]);
+    setTexasLastGain(0);
     setTexasCanReveal(false);
   };
 
@@ -697,7 +799,11 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
       return;
     }
 
-    const aiIndex = emptyCells[randomInt(0, emptyCells.length - 1)];
+    const aiWinningMove = findImmediateWinningMove(boardDraft, GOMOKU_SIZE, 'white');
+    const aiBlockingMove = findImmediateWinningMove(boardDraft, GOMOKU_SIZE, 'black');
+    const strategicMove = pickStrategicAiMove(boardDraft, GOMOKU_SIZE);
+    const aiIndex =
+      aiWinningMove ?? aiBlockingMove ?? (strategicMove >= 0 ? strategicMove : emptyCells[randomInt(0, emptyCells.length - 1)]);
     boardDraft[aiIndex] = 'white';
     nextMoves += 1;
 
@@ -737,6 +843,10 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
     texasPlayerCards,
     texasBoardCards,
     texasOpponents,
+    texasHighlightPlayerHandIndices,
+    texasHighlightOpponentHandIndices,
+    texasOpponentHandCodes,
+    texasWinningOpponentIndices,
     texasLastGain,
     texasHands,
     texasHandCode,
@@ -759,6 +869,7 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
     gomokuMoves,
     playTexas,
     revealTexas,
+    foldTexas,
     playWheel,
     playFortune,
     playJackpot,
