@@ -6,12 +6,16 @@ const worldThemeClasses = ['world-card-grass', 'world-card-desert', 'world-card-
 
 export const WorldSection = () => {
   const { message } = useI18n();
+  const rewardThreshold = 10;
+  const rewardImageSrc = `${import.meta.env.BASE_URL}img/qrcode.jpg`;
   const [activeStageIndex, setActiveStageIndex] = useState(0);
   const [birthdayInput, setBirthdayInput] = useState('');
   const [wheelHistoryVisible, setWheelHistoryVisible] = useState(false);
   const [isGameplayFocused, setIsGameplayFocused] = useState(false);
+  const [isRewardModalOpen, setIsRewardModalOpen] = useState(false);
   const worldSectionRef = useRef<HTMLElement | null>(null);
   const stagePanelRef = useRef<HTMLElement | null>(null);
+  const previousTotalScoreRef = useRef(0);
   const gameplay = useWorldStageGameplay();
 
   const activeStageDetail = useMemo(() => {
@@ -69,6 +73,34 @@ export const WorldSection = () => {
       window.cancelAnimationFrame(rafId);
     };
   }, [isGameplayFocused]);
+
+  useEffect(() => {
+    const previousScore = previousTotalScoreRef.current;
+    const currentScore = gameplay.totalScore;
+
+    if (previousScore < rewardThreshold && currentScore >= rewardThreshold) {
+      setIsRewardModalOpen(true);
+    }
+
+    previousTotalScoreRef.current = currentScore;
+  }, [gameplay.totalScore, rewardThreshold]);
+
+  useEffect(() => {
+    if (!isRewardModalOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsRewardModalOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isRewardModalOpen]);
 
   return (
     <section ref={worldSectionRef} className={`world-section screen-section ${isGameplayFocused ? 'is-game-focus' : ''}`} id="worlds">
@@ -252,31 +284,41 @@ export const WorldSection = () => {
               <div className="wheel-rule-board">
                 <p>{message.world.play.wheelRuleTitle}</p>
                 <div className="wheel-rule-grid">
-                  <span className="wheel-rule-item">
-                    <i className="wheel-zone-chip zone-negative" />
-                    {message.world.play.wheelZoneNegative}: -5,-5,-10,-10
-                  </span>
-                  <em>{message.world.play.wheelRateLabel} 20%</em>
-                  <span className="wheel-rule-item">
-                    <i className="wheel-zone-chip zone-positive" />
-                    {message.world.play.wheelZonePositive}: +5,+5,+10,+10
-                  </span>
-                  <em>{message.world.play.wheelRateLabel} 20%</em>
-                  <span className="wheel-rule-item">
-                    <i className="wheel-zone-chip zone-neutral" />
-                    {message.world.play.wheelZoneNeutral}: 0
-                  </span>
-                  <em>{message.world.play.wheelRateLabel} 58%</em>
-                  <span className="wheel-rule-item">
-                    <i className="wheel-zone-chip zone-plus50" />
-                    {message.world.play.wheelZonePlus50}: +50
-                  </span>
-                  <em>{message.world.play.wheelRateLabel} 0.5%</em>
-                  <span className="wheel-rule-item">
-                    <i className="wheel-zone-chip zone-minus50" />
-                    {message.world.play.wheelZoneMinus50}: -50
-                  </span>
-                  <em>{message.world.play.wheelRateLabel} 1.5%</em>
+                  <div className="wheel-rule-row zone-negative">
+                    <span className="wheel-rule-item">
+                      <i className="wheel-zone-chip zone-negative" />
+                      {message.world.play.wheelZoneNegative}: -5,-5,-10,-10
+                    </span>
+                    <em>{message.world.play.wheelRateLabel} 20%</em>
+                  </div>
+                  <div className="wheel-rule-row zone-positive">
+                    <span className="wheel-rule-item">
+                      <i className="wheel-zone-chip zone-positive" />
+                      {message.world.play.wheelZonePositive}: +5,+5,+10,+10
+                    </span>
+                    <em>{message.world.play.wheelRateLabel} 20%</em>
+                  </div>
+                  <div className="wheel-rule-row zone-neutral">
+                    <span className="wheel-rule-item">
+                      <i className="wheel-zone-chip zone-neutral" />
+                      {message.world.play.wheelZoneNeutral}: 0
+                    </span>
+                    <em>{message.world.play.wheelRateLabel} 58%</em>
+                  </div>
+                  <div className="wheel-rule-row zone-plus50">
+                    <span className="wheel-rule-item">
+                      <i className="wheel-zone-chip zone-plus50" />
+                      {message.world.play.wheelZonePlus50}: +50
+                    </span>
+                    <em>{message.world.play.wheelRateLabel} 0.5%</em>
+                  </div>
+                  <div className="wheel-rule-row zone-minus50">
+                    <span className="wheel-rule-item">
+                      <i className="wheel-zone-chip zone-minus50" />
+                      {message.world.play.wheelZoneMinus50}: -50
+                    </span>
+                    <em>{message.world.play.wheelRateLabel} 1.5%</em>
+                  </div>
                 </div>
               </div>
               <div className="world-machine-metrics">
@@ -397,6 +439,24 @@ export const WorldSection = () => {
           ) : null}
         </section>
       </section>
+      {isRewardModalOpen ? (
+        <div className="reward-modal-overlay" role="presentation" onClick={() => setIsRewardModalOpen(false)}>
+          <section
+            className="reward-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={message.world.play.rewardTitle}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button type="button" className="reward-modal-close" onClick={() => setIsRewardModalOpen(false)}>
+              {message.world.play.rewardClose}
+            </button>
+            <h4>{message.world.play.rewardTitle}</h4>
+            <p>{message.world.play.rewardDescription}</p>
+            <img src={rewardImageSrc} alt={message.world.play.rewardTitle} loading="lazy" />
+          </section>
+        </div>
+      ) : null}
     </section>
   );
 };

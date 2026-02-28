@@ -55,6 +55,9 @@ type WorldPlayText = {
   wheelHistoryTitle: string;
   wheelHistoryEmpty: string;
   wheelHistoryZone: string;
+  rewardTitle: string;
+  rewardDescription: string;
+  rewardClose: string;
   focusBack: string;
   lastGain: string;
   jackpotWindow: string;
@@ -210,6 +213,9 @@ export const messages: Record<Locale, Messages> = {
         wheelHistoryTitle: 'Spin Records',
         wheelHistoryEmpty: 'No records yet.',
         wheelHistoryZone: 'Zone',
+        rewardTitle: 'Reward Unlocked',
+        rewardDescription: 'Your total score reached 10. Scan this QR code to claim your bonus.',
+        rewardClose: 'Close',
         focusBack: 'Back To Stages',
         lastGain: 'Last Gain',
         jackpotWindow: 'Jackpot Window',
@@ -330,6 +336,9 @@ export const messages: Record<Locale, Messages> = {
         wheelHistoryTitle: '转盘记录',
         wheelHistoryEmpty: '暂无记录。',
         wheelHistoryZone: '区间',
+        rewardTitle: '奖励已解锁',
+        rewardDescription: '你的总分已达到 10 分，扫描下方二维码领取奖励。',
+        rewardClose: '关闭',
         focusBack: '返回关卡',
         lastGain: '本次得分',
         jackpotWindow: '头奖窗口',
