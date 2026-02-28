@@ -1,1 +1,0 @@
-const r=(o="")=>{const i=document.querySelector(`.${o}`);if(!i)return;const t=i.getBoundingClientRect(),e=window.innerHeight;return t.bottom<0||t.top>e?0:t.top>=0&&t.bottom<=e?100:(Math.min(t.bottom,e)-Math.max(t.top,0))/t.height};export{r as c};

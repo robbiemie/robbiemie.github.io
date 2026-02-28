@@ -1,37 +1,27 @@
-# Frontend Wiki
+# robbiemie.github.io
 
-## Setup
+A Chrome-first personal site rebuilt with React, TypeScript, MobX, particles, and Three.js.
 
-Make sure to install the dependencies:
+## Stack
 
-```bash
-# npm
-$ npm install
-```
+- React 18
+- TypeScript 5
+- MobX + mobx-react-lite
+- Vite 5
+- @react-three/fiber + drei
+- tsParticles
 
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
-$ npm start
-```
-
-## Production
-
-Build the application for production:
+## Commands
 
 ```bash
-# npm
-$ npm run build
+npm install
+npm run dev
+npm run build
+npm run preview
 ```
 
-Locally preview production build:
+## GitHub Pages Notes
 
-```bash
-# npm
-$ npm run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+- `CNAME` is kept in repository root for custom-domain publishing.
+- `404.html` and `200.html` include SPA fallback logic.
+- `vite.config.ts` supports path override via `VITE_BASE_PATH`.
