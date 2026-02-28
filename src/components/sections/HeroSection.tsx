@@ -2,6 +2,7 @@ import { observer } from 'mobx-react-lite';
 import { useRootStore } from '../../stores/root-store-context';
 import { AnimatedSignature } from '../effects/AnimatedSignature';
 import { GameVisualPanel } from './GameVisualPanel';
+import { HolidayCountdown } from './HolidayCountdown';
 
 export const HeroSection = observer(() => {
   const {
@@ -20,6 +21,8 @@ export const HeroSection = observer(() => {
           <span>Your Next</span>
           <span>Bright World</span>
         </h1>
+        <p className="hero-description">Build with focus. Learn with consistency. Keep moving forward.</p>
+        <HolidayCountdown />
         <div className="hero-link-group">
           <a className="hero-link" href="#worlds">
             Start Adventure

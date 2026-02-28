@@ -696,12 +696,13 @@ body {
 .hero-description {
   max-width: 44ch;
   margin-top: 1rem;
-  margin-bottom: 1.15rem;
+  margin-bottom: 0.9rem;
   font-size: clamp(1rem, 1.35vw, 1.18rem);
   line-height: 1.5;
 }
 
 .hero-link-group {
+  margin-top: 0.95rem;
   gap: 0.85rem;
 }
 
@@ -815,6 +816,53 @@ body {
   box-shadow: 0 10px 24px rgba(30, 81, 117, 0.24);
 }
 
+/* Screen transitions */
+.screen-section {
+  transition:
+    opacity 0.7s ease,
+    transform 0.8s cubic-bezier(0.2, 0.75, 0.24, 1),
+    filter 0.8s ease,
+    clip-path 0.9s ease;
+  will-change: transform, opacity, filter, clip-path;
+}
+
+.screen-section:not(.is-revealed) {
+  opacity: 0;
+  filter: blur(8px);
+}
+
+.hero-section {
+  clip-path: inset(0 0 0 0 round 0);
+}
+
+.hero-section:not(.is-revealed) {
+  transform: translateY(38px) scale(0.98);
+  clip-path: inset(0 0 18% 0 round 18px);
+}
+
+.world-section:not(.is-revealed) {
+  transform: translateX(-48px) rotate(-0.6deg);
+}
+
+.showcase-section:not(.is-revealed) {
+  transform: translateY(46px) scale(0.97);
+}
+
+.knowledge-section:not(.is-revealed) {
+  transform: translateX(52px) rotate(0.7deg);
+}
+
+.future-section:not(.is-revealed) {
+  transform: translateY(54px) scale(1.02);
+}
+
+.screen-section.is-revealed {
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+  clip-path: inset(0 0 0 0 round 0);
+}
+
 /* Typography System V2 */
 :root {
   --type-display: #ff4b2b;
@@ -890,6 +938,63 @@ body {
   font-weight: 800;
   font-size: 0.96rem;
   letter-spacing: 0.01em;
+}
+
+.holiday-countdown {
+  margin-top: 0.9rem;
+  border: 2px solid rgba(20, 61, 89, 0.28);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.75rem 0.8rem;
+}
+
+.holiday-countdown-label {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #dd492f;
+}
+
+.holiday-countdown-next {
+  margin: 0.36rem 0 0;
+  font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #1e4f77;
+}
+
+.holiday-countdown-timer {
+  margin: 0.18rem 0 0;
+  font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+  font-size: clamp(1.2rem, 1.8vw, 1.45rem);
+  font-weight: 800;
+  color: #ff4b2b;
+  letter-spacing: 0.01em;
+}
+
+.holiday-countdown-list {
+  margin: 0.62rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.22rem;
+}
+
+.holiday-countdown-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
+  font-size: 0.82rem;
+  color: #2f5f80;
+}
+
+.holiday-countdown-list li span:last-child {
+  color: #426e8d;
+  white-space: nowrap;
 }
 
 .coin {

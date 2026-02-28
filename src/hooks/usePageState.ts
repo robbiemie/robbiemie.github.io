@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useRootStore } from '../stores/root-store-context';
 import { useMouseParallax } from './useMouseParallax';
+import { useScreenTransitions } from './useScreenTransitions';
 import { useScrollProgress } from './useScrollProgress';
 
 export const usePageState = () => {
@@ -8,6 +9,7 @@ export const usePageState = () => {
 
   useScrollProgress();
   useMouseParallax();
+  useScreenTransitions();
 
   useEffect(() => {
     pageStore.setReadyState(true);
