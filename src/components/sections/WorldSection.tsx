@@ -11,6 +11,7 @@ export const WorldSection = () => {
   const [activeStageIndex, setActiveStageIndex] = useState(0);
   const [birthdayInput, setBirthdayInput] = useState('');
   const [wheelHistoryVisible, setWheelHistoryVisible] = useState(false);
+  const [isScoreHistoryVisible, setIsScoreHistoryVisible] = useState(false);
   const [isGameplayFocused, setIsGameplayFocused] = useState(false);
   const [isRewardModalOpen, setIsRewardModalOpen] = useState(false);
   const worldSectionRef = useRef<HTMLElement | null>(null);
@@ -154,8 +155,39 @@ export const WorldSection = () => {
               <span>{message.world.play.scoreLabel}</span>
               <strong>{gameplay.totalScore}</strong>
             </div>
+            <button
+              type="button"
+              className="world-score-history-trigger"
+              onClick={() => setIsScoreHistoryVisible((visible) => !visible)}
+            >
+              {message.world.play.scoreHistoryAction}
+            </button>
           </div>
         </div>
+
+        {isScoreHistoryVisible ? (
+          <section className="world-score-history" aria-label={message.world.play.scoreHistoryTitle}>
+            <p>{message.world.play.scoreHistoryTitle}</p>
+            {gameplay.scoreHistory.length === 0 ? (
+              <span className="world-score-history-empty">{message.world.play.scoreHistoryEmpty}</span>
+            ) : (
+              <ul>
+                {gameplay.scoreHistory.map((item) => (
+                  <li key={item.id}>
+                    <span>{item.time}</span>
+                    <span>
+                      {message.world.play.scoreHistoryGameLabel}: {message.world.play.scoreSourceLabels[item.source]}
+                    </span>
+                    <span>{item.gain > 0 ? `+${item.gain}` : item.gain}</span>
+                    <span>
+                      {message.world.play.scoreHistoryTotalLabel}: {item.total}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ) : null}
 
         {!isGameplayFocused ? (
           <>
@@ -246,7 +278,7 @@ export const WorldSection = () => {
               </div>
               <div className="world-machine-metrics">
                 <span>
-                  {message.world.play.lastGain}: +{gameplay.texasLastGain}
+                  {message.world.play.lastGain}: {gameplay.texasLastGain > 0 ? `+${gameplay.texasLastGain}` : gameplay.texasLastGain}
                 </span>
                 <span>
                   {message.world.play.texasHands}: {gameplay.texasHands}

@@ -55,6 +55,17 @@ type WorldPlayText = {
   wheelHistoryTitle: string;
   wheelHistoryEmpty: string;
   wheelHistoryZone: string;
+  scoreHistoryAction: string;
+  scoreHistoryTitle: string;
+  scoreHistoryEmpty: string;
+  scoreHistoryGameLabel: string;
+  scoreHistoryTotalLabel: string;
+  scoreSourceLabels: {
+    texas: string;
+    wheel: string;
+    fortune: string;
+    jackpot: string;
+  };
   rewardTitle: string;
   rewardDescription: string;
   rewardClose: string;
@@ -213,6 +224,17 @@ export const messages: Record<Locale, Messages> = {
         wheelHistoryTitle: 'Spin Records',
         wheelHistoryEmpty: 'No records yet.',
         wheelHistoryZone: 'Zone',
+        scoreHistoryAction: 'Score Details',
+        scoreHistoryTitle: 'Global Score Log',
+        scoreHistoryEmpty: 'No score records yet.',
+        scoreHistoryGameLabel: 'Game',
+        scoreHistoryTotalLabel: 'Total',
+        scoreSourceLabels: {
+          texas: "Texas Hold'em",
+          wheel: 'Lucky Wheel',
+          fortune: 'Birthday Fortune',
+          jackpot: 'Jackpot Rush'
+        },
         rewardTitle: 'Reward Unlocked',
         rewardDescription: 'Your total score reached 10. Scan this QR code to claim your bonus.',
         rewardClose: 'Close',
@@ -336,6 +358,17 @@ export const messages: Record<Locale, Messages> = {
         wheelHistoryTitle: '转盘记录',
         wheelHistoryEmpty: '暂无记录。',
         wheelHistoryZone: '区间',
+        scoreHistoryAction: '得分明细',
+        scoreHistoryTitle: '全局得分流水',
+        scoreHistoryEmpty: '暂无得分记录。',
+        scoreHistoryGameLabel: '游戏',
+        scoreHistoryTotalLabel: '累计',
+        scoreSourceLabels: {
+          texas: '德州扑克牌',
+          wheel: '幸运转盘',
+          fortune: '生日运势',
+          jackpot: '头奖冲刺'
+        },
         rewardTitle: '奖励已解锁',
         rewardDescription: '你的总分已达到 10 分，扫描下方二维码领取奖励。',
         rewardClose: '关闭',

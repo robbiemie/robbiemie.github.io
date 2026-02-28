@@ -21,6 +21,15 @@ type WheelHistoryItem = {
 };
 
 type WheelSegmentRange = [number, number];
+type ScoreSource = 'texas' | 'wheel' | 'fortune' | 'jackpot';
+
+type ScoreHistoryItem = {
+  id: number;
+  source: ScoreSource;
+  gain: number;
+  total: number;
+  time: string;
+};
 
 const CARD_SUITS = ['S', 'H', 'D', 'C'] as const;
 const CARD_RANKS = ['A', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2'] as const;
@@ -70,6 +79,7 @@ type FortuneState = {
 
 type GameplayState = {
   totalScore: number;
+  scoreHistory: readonly ScoreHistoryItem[];
   texasPlayerCards: readonly string[];
   texasBoardCards: readonly string[];
   texasOpponents: readonly string[][];
@@ -109,6 +119,37 @@ type HandScore = {
   handCode: TexasHandCode;
   rankLevel: number;
   kickers: number[];
+};
+
+const TEXAS_HAND_BASE_GAIN: Record<TexasHandCode, number> = {
+  high_card: 6,
+  pair: 10,
+  two_pair: 14,
+  three_kind: 20,
+  straight: 28,
+  flush: 36,
+  full_house: 48,
+  four_kind: 66,
+  straight_flush: 88
+};
+
+const TEXAS_OUTCOME_MULTIPLIER: Record<TexasOutcome, number> = {
+  pending: 0,
+  win: 1.2,
+  tie: 0.75,
+  lose: -0.55
+};
+
+const TEXAS_MIN_TOTAL_SCORE = -120;
+
+const calculateTexasGain = (handCode: TexasHandCode, outcome: TexasOutcome): number => {
+  const baseGain = TEXAS_HAND_BASE_GAIN[handCode];
+  const multiplier = TEXAS_OUTCOME_MULTIPLIER[outcome];
+  const nextGain = Math.round(baseGain * multiplier);
+  if (outcome === 'lose') {
+    return Math.min(nextGain, -2);
+  }
+  return Math.max(nextGain, 2);
 };
 
 const randomInt = (min: number, max: number): number => {
@@ -347,9 +388,12 @@ const pickWheelAngle = (zone: WheelZone): number => {
 export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
   const timeoutRefs = useRef<number[]>([]);
   const texasRoundRef = useRef<{ player: DealtCard[]; board: DealtCard[]; opponents: DealtCard[][] } | null>(null);
+  const texasRevealLockedRef = useRef(false);
+  const totalScoreRef = useRef(0);
 
   const [nowSecond, setNowSecond] = useState(() => Math.floor(Date.now() / 1000));
   const [totalScore, setTotalScore] = useState(0);
+  const [scoreHistory, setScoreHistory] = useState<readonly ScoreHistoryItem[]>([]);
 
   const [texasPlayerCards, setTexasPlayerCards] = useState<readonly string[]>([]);
   const [texasBoardCards, setTexasBoardCards] = useState<readonly string[]>([]);
@@ -384,6 +428,10 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
   const [jackpotLastGain, setJackpotLastGain] = useState(0);
 
   useEffect(() => {
+    totalScoreRef.current = totalScore;
+  }, [totalScore]);
+
+  useEffect(() => {
     const intervalId = window.setInterval(() => {
       setNowSecond(Math.floor(Date.now() / 1000));
     }, 1000);
@@ -403,8 +451,23 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
   const jackpotWindowOpen = phaseSecond < JACKPOT_WINDOW_SECONDS;
   const jackpotCountdown = jackpotWindowOpen ? JACKPOT_WINDOW_SECONDS - phaseSecond : JACKPOT_CYCLE_SECONDS - phaseSecond;
 
-  const addScore = (nextGain: number) => {
-    setTotalScore((score) => score + nextGain);
+  const addScore = (nextGain: number, source: ScoreSource, minTotalScore?: number) => {
+    const previousTotalScore = totalScoreRef.current;
+    const mergedScore = previousTotalScore + nextGain;
+    const nextTotalScore = typeof minTotalScore === 'number' ? Math.max(mergedScore, minTotalScore) : mergedScore;
+    const appliedGain = nextTotalScore - previousTotalScore;
+
+    totalScoreRef.current = nextTotalScore;
+    setTotalScore(nextTotalScore);
+
+    const historyItem: ScoreHistoryItem = {
+      id: Date.now() + Math.floor(Math.random() * 1000),
+      source,
+      gain: appliedGain,
+      total: nextTotalScore,
+      time: new Date().toLocaleTimeString('en-US', { hour12: false })
+    };
+    setScoreHistory((items) => [historyItem, ...items].slice(0, 40));
   };
 
   const queueTimeout = (handler: () => void, delay: number) => {
@@ -433,13 +496,15 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
     setTexasOutcome('pending');
     setTexasLastGain(0);
     setTexasCanReveal(true);
+    texasRevealLockedRef.current = false;
     setTexasHands((value) => value + 1);
   };
 
   const revealTexas = () => {
-    if (!texasCanReveal || !texasRoundRef.current) {
+    if (!texasCanReveal || !texasRoundRef.current || texasRevealLockedRef.current) {
       return;
     }
+    texasRevealLockedRef.current = true;
 
     const { player, board, opponents } = texasRoundRef.current;
     const playerScore = buildBestScoreFromSeven([...player, ...board]);
@@ -450,14 +515,16 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
     const hasOpponentEqualPlayer = opponentScores.some((score) => compareHands(score, playerScore) === 0);
 
     const outcome: TexasOutcome = compareWithBestOpponent > 0 ? 'win' : compareWithBestOpponent < 0 ? 'lose' : hasOpponentEqualPlayer ? 'tie' : 'win';
-    const gain = outcome === 'win' ? 72 : outcome === 'tie' ? 24 : 6;
+    const gain = calculateTexasGain(playerScore.handCode, outcome);
 
     setTexasOpponents(opponents.map((cards) => cards.map(formatCard)));
     setTexasHandCode(playerScore.handCode);
     setTexasOutcome(outcome);
-    setTexasLastGain(gain);
+    const mergedScore = totalScore + gain;
+    const appliedGain = mergedScore < TEXAS_MIN_TOTAL_SCORE ? TEXAS_MIN_TOTAL_SCORE - totalScore : gain;
+    setTexasLastGain(appliedGain);
     setTexasCanReveal(false);
-    addScore(gain);
+    addScore(gain, 'texas', TEXAS_MIN_TOTAL_SCORE);
   };
 
   const playWheel = () => {
@@ -492,7 +559,7 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
       setWheelZoneProbability(result.zone === 'neutral' ? 58 : result.probability);
       setWheelStreak((value) => (result.gain > 0 ? value + 1 : 0));
       setWheelHistory((items) => [historyItem, ...items].slice(0, 24));
-      addScore(result.gain);
+      addScore(result.gain, 'wheel');
     }, 960);
   };
 
@@ -526,7 +593,7 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
       luckyTime
     });
 
-    addScore(nextGain);
+    addScore(nextGain, 'fortune');
   };
 
   const playJackpot = () => {
@@ -538,11 +605,12 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
     const gain = Math.round((baseGain + wheelBoost + fortuneBoost + phaseBoost) * multiplier);
 
     setJackpotLastGain(gain);
-    addScore(gain);
+    addScore(gain, 'jackpot');
   };
 
   return {
     totalScore,
+    scoreHistory,
     texasPlayerCards,
     texasBoardCards,
     texasOpponents,
