@@ -103,6 +103,7 @@ type WorldPlayText = {
   gomokuBlackLabel: string;
   gomokuWhiteLabel: string;
   focusBack: string;
+  enterStageAction: string;
   lastGain: string;
   jackpotWindow: string;
   jackpotOpen: string;
@@ -135,6 +136,7 @@ type Messages = {
     knowledgeButton: string;
     blogButton: string;
     githubButton: string;
+    lockedHint: string;
   };
   world: {
     kicker: string;
@@ -162,7 +164,8 @@ export const messages: Record<Locale, Messages> = {
       startButton: 'Start Adventure',
       knowledgeButton: 'Knowledge Base',
       blogButton: 'CSDN Blog',
-      githubButton: 'GitHub'
+      githubButton: 'GitHub',
+      lockedHint: 'Unlock at score > 5'
     },
     world: {
       kicker: 'Choose A World',
@@ -315,6 +318,7 @@ export const messages: Record<Locale, Messages> = {
         gomokuBlackLabel: 'Black',
         gomokuWhiteLabel: 'White',
         focusBack: 'Back To Stages',
+        enterStageAction: 'Enter Stage',
         lastGain: 'Last Gain',
         jackpotWindow: 'Board Status',
         jackpotOpen: 'You Win',
@@ -355,7 +359,8 @@ export const messages: Record<Locale, Messages> = {
       startButton: '开始探索',
       knowledgeButton: '前端知识库',
       blogButton: '技术博客',
-      githubButton: 'GitHub'
+      githubButton: 'GitHub',
+      lockedHint: '分数超过 5 分后解锁'
     },
     world: {
       kicker: '选择一个世界',
@@ -492,6 +497,7 @@ export const messages: Record<Locale, Messages> = {
         gomokuBlackLabel: '黑子',
         gomokuWhiteLabel: '白子',
         focusBack: '返回关卡',
+        enterStageAction: '进入关卡',
         lastGain: '本次得分',
         jackpotWindow: '棋局状态',
         jackpotOpen: '你赢了',

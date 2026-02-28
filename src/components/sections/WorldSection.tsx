@@ -1,17 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '../../i18n/locale-context';
 import { useWorldStageGameplay } from '../../hooks/useWorldStageGameplay';
+import { useRootStore } from '../../stores/root-store-context';
 
 const worldThemeClasses = ['world-card-grass', 'world-card-desert', 'world-card-ice', 'world-card-sky'] as const;
 
 export const WorldSection = () => {
   const { message } = useI18n();
+  const {
+    gameStore: { setTotalScore }
+  } = useRootStore();
   const rewardThreshold = 10;
   const rewardImageSrc = `${import.meta.env.BASE_URL}img/qrcode.jpg`;
   const [activeStageIndex, setActiveStageIndex] = useState(0);
   const [selectedZodiac, setSelectedZodiac] = useState('');
   const [wheelHistoryVisible, setWheelHistoryVisible] = useState(false);
-  const [isScoreHistoryVisible, setIsScoreHistoryVisible] = useState(false);
+  const [isScoreHistoryModalOpen, setIsScoreHistoryModalOpen] = useState(false);
   const [isGameplayFocused, setIsGameplayFocused] = useState(false);
   const [ruleModalType, setRuleModalType] = useState<'texas' | 'wheel' | null>(null);
   const [isRewardUnlocked, setIsRewardUnlocked] = useState(false);
@@ -24,6 +28,7 @@ export const WorldSection = () => {
   const activeStageDetail = useMemo(() => {
     return message.world.details[activeStageIndex] ?? message.world.details[0];
   }, [activeStageIndex, message.world.details]);
+  const compactHighlights = useMemo(() => activeStageDetail.highlights.slice(0, 2), [activeStageDetail.highlights]);
 
   const wheelTierText = useMemo(() => {
     if (gameplay.wheelZone === 'negative') return message.world.play.wheelZoneNegative;
@@ -90,6 +95,10 @@ export const WorldSection = () => {
   }, [gameplay.totalScore, rewardThreshold]);
 
   useEffect(() => {
+    setTotalScore(gameplay.totalScore);
+  }, [gameplay.totalScore, setTotalScore]);
+
+  useEffect(() => {
     if (!isRewardModalOpen) {
       return;
     }
@@ -149,6 +158,7 @@ export const WorldSection = () => {
                 onClick={() => {
                   setIsGameplayFocused(false);
                   setWheelHistoryVisible(false);
+                  setIsScoreHistoryModalOpen(false);
                 }}
               >
                 {message.world.play.focusBack}
@@ -158,52 +168,33 @@ export const WorldSection = () => {
               <span>{message.world.play.scoreLabel}</span>
               <strong>{gameplay.totalScore}</strong>
             </div>
-            <button
-              type="button"
-              className="world-score-history-trigger"
-              onClick={() => setIsScoreHistoryVisible((visible) => !visible)}
-            >
-              {message.world.play.scoreHistoryAction}
-            </button>
+            {isGameplayFocused ? (
+              <button
+                type="button"
+                className="world-score-history-trigger"
+                onClick={() => setIsScoreHistoryModalOpen(true)}
+              >
+                {message.world.play.scoreHistoryAction}
+              </button>
+            ) : null}
           </div>
         </div>
 
-        {isScoreHistoryVisible ? (
-          <section className="world-score-history" aria-label={message.world.play.scoreHistoryTitle}>
-            <p>{message.world.play.scoreHistoryTitle}</p>
-            {gameplay.scoreHistory.length === 0 ? (
-              <span className="world-score-history-empty">{message.world.play.scoreHistoryEmpty}</span>
-            ) : (
-              <ul>
-                {gameplay.scoreHistory.map((item) => (
-                  <li key={item.id}>
-                    <span>{item.time}</span>
-                    <span>
-                      {message.world.play.scoreHistoryGameLabel}: {message.world.play.scoreSourceLabels[item.source]}
-                    </span>
-                    <span>{item.gain > 0 ? `+${item.gain}` : item.gain}</span>
-                    <span>
-                      {message.world.play.scoreHistoryTotalLabel}: {item.total}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        ) : null}
-
         {!isGameplayFocused ? (
-          <>
+          <div className="world-stage-compact">
             <p>{activeStageDetail.description}</p>
             <ul>
-              {activeStageDetail.highlights.map((item) => (
+              {compactHighlights.map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
-          </>
+            <button type="button" className="world-action-button action-enter" onClick={() => setIsGameplayFocused(true)}>
+              {message.world.play.enterStageAction}
+            </button>
+          </div>
         ) : null}
 
-        <section className="world-playground" aria-label={message.world.play.title}>
+        {isGameplayFocused ? <section className="world-playground" aria-label={message.world.play.title}>
           <p className="world-playground-kicker">{message.world.play.title}</p>
 
           {activeStageIndex === 0 ? (
@@ -275,30 +266,38 @@ export const WorldSection = () => {
                 </div>
               </div>
 
-              <div className="world-machine-actions">
-                <button type="button" className="world-action-button action-deal" onClick={() => runFocusedAction(gameplay.playTexas)}>
-                  {message.world.play.texasAction}
-                </button>
-                <button
-                  type="button"
-                  className="world-action-button world-action-button-alt action-reveal"
-                  disabled={!gameplay.texasCanReveal}
-                  onClick={gameplay.revealTexas}
-                >
-                  {message.world.play.texasRevealAction}
-                </button>
-                <button
-                  type="button"
-                  className="world-action-button world-action-button-alt action-fold"
-                  disabled={!gameplay.texasCanReveal}
-                  onClick={gameplay.foldTexas}
-                >
-                  {message.world.play.texasFoldAction}
-                </button>
+              <div className="texas-action-layout">
+                <div className="world-machine-actions texas-action-group texas-action-group-play">
+                  <button type="button" className="world-action-button action-deal" onClick={() => runFocusedAction(gameplay.playTexas)}>
+                    {message.world.play.texasAction}
+                  </button>
+                  <button
+                    type="button"
+                    className="world-action-button world-action-button-alt action-reveal"
+                    disabled={!gameplay.texasCanReveal}
+                    onClick={gameplay.revealTexas}
+                  >
+                    {message.world.play.texasRevealAction}
+                  </button>
+                  <button
+                    type="button"
+                    className="world-action-button world-action-button-alt action-fold"
+                    disabled={!gameplay.texasCanReveal}
+                    onClick={gameplay.foldTexas}
+                  >
+                    {message.world.play.texasFoldAction}
+                  </button>
+                </div>
+                <div className="texas-action-group texas-action-group-meta">
+                  <button
+                    type="button"
+                    className="world-action-button world-action-button-alt world-rule-button action-rule"
+                    onClick={() => setRuleModalType('texas')}
+                  >
+                    {message.world.play.ruleAction}
+                  </button>
+                </div>
               </div>
-              <button type="button" className="world-action-button world-action-button-alt world-rule-button action-rule" onClick={() => setRuleModalType('texas')}>
-                {message.world.play.ruleAction}
-              </button>
 
               <div className="texas-summary">
                 <span>
@@ -512,7 +511,7 @@ export const WorldSection = () => {
               </div>
             </div>
           ) : null}
-        </section>
+        </section> : null}
       </section>
       {isRewardModalOpen ? (
         <div className="reward-modal-overlay" role="presentation" onClick={() => setIsRewardModalOpen(false)}>
@@ -544,6 +543,34 @@ export const WorldSection = () => {
                 <li key={item}>{item}</li>
               ))}
             </ul>
+          </section>
+        </div>
+      ) : null}
+      {isScoreHistoryModalOpen ? (
+        <div className="rule-modal-overlay" role="presentation" onClick={() => setIsScoreHistoryModalOpen(false)}>
+          <section className="rule-modal score-history-modal" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+            <button type="button" className="rule-modal-close" onClick={() => setIsScoreHistoryModalOpen(false)}>
+              {message.world.play.rewardClose}
+            </button>
+            <h4>{message.world.play.scoreHistoryTitle}</h4>
+            {gameplay.scoreHistory.length === 0 ? (
+              <span className="score-history-modal-empty">{message.world.play.scoreHistoryEmpty}</span>
+            ) : (
+              <ul className="score-history-modal-list">
+                {gameplay.scoreHistory.map((item) => (
+                  <li key={item.id}>
+                    <span>{item.time}</span>
+                    <span>
+                      {message.world.play.scoreHistoryGameLabel}: {message.world.play.scoreSourceLabels[item.source]}
+                    </span>
+                    <span>{item.gain > 0 ? `+${item.gain}` : item.gain}</span>
+                    <span>
+                      {message.world.play.scoreHistoryTotalLabel}: {item.total}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         </div>
       ) : null}
