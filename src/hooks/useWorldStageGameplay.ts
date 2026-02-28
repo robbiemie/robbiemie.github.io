@@ -1,8 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
 
-const WHEEL_REWARDS = [8, 12, 16, 24, 36, 56] as const;
 const JACKPOT_CYCLE_SECONDS = 60;
 const JACKPOT_WINDOW_SECONDS = 12;
+
+type WheelZone = 'negative' | 'positive' | 'neutral' | 'plus50' | 'minus50';
+
+type WheelResult = {
+  gain: number;
+  zone: WheelZone;
+  probability: number;
+};
+
+type WheelHistoryItem = {
+  id: number;
+  gain: number;
+  zone: WheelZone;
+  probability: number;
+  spin: number;
+  time: string;
+};
 
 const CARD_SUITS = ['S', 'H', 'D', 'C'] as const;
 const CARD_RANKS = ['A', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2'] as const;
@@ -65,6 +81,9 @@ type GameplayState = {
   wheelSpins: number;
   wheelStreak: number;
   wheelLastGain: number;
+  wheelZone: WheelZone;
+  wheelZoneProbability: number;
+  wheelHistory: readonly WheelHistoryItem[];
   fortune: FortuneState;
   jackpotLastGain: number;
   jackpotWindowOpen: boolean;
@@ -146,35 +165,28 @@ const evaluateFiveCards = (cards: DealtCard[]): HandScore => {
   if (straightCheck.ok && flush) {
     return { handCode: 'straight_flush', rankLevel: 9, kickers: [straightCheck.high] };
   }
-
   if (orderedGroups[0][1] === 4) {
     return { handCode: 'four_kind', rankLevel: 8, kickers: [orderedGroups[0][0], orderedGroups[1][0]] };
   }
-
   if (orderedGroups[0][1] === 3 && orderedGroups[1][1] === 2) {
     return { handCode: 'full_house', rankLevel: 7, kickers: [orderedGroups[0][0], orderedGroups[1][0]] };
   }
-
   if (flush) {
     return { handCode: 'flush', rankLevel: 6, kickers: [...values].sort((a, b) => b - a) };
   }
-
   if (straightCheck.ok) {
     return { handCode: 'straight', rankLevel: 5, kickers: [straightCheck.high] };
   }
-
   if (orderedGroups[0][1] === 3) {
     const rest = orderedGroups.slice(1).map((item) => item[0]).sort((a, b) => b - a);
     return { handCode: 'three_kind', rankLevel: 4, kickers: [orderedGroups[0][0], ...rest] };
   }
-
   if (orderedGroups[0][1] === 2 && orderedGroups[1][1] === 2) {
     const highPair = Math.max(orderedGroups[0][0], orderedGroups[1][0]);
     const lowPair = Math.min(orderedGroups[0][0], orderedGroups[1][0]);
     const kicker = orderedGroups[2][0];
     return { handCode: 'two_pair', rankLevel: 3, kickers: [highPair, lowPair, kicker] };
   }
-
   if (orderedGroups[0][1] === 2) {
     const rest = orderedGroups.slice(1).map((item) => item[0]).sort((a, b) => b - a);
     return { handCode: 'pair', rankLevel: 2, kickers: [orderedGroups[0][0], ...rest] };
@@ -253,6 +265,47 @@ const createShuffledDeck = (): DealtCard[] => {
   return deck;
 };
 
+const pickWheelResult = (): WheelResult => {
+  const roll = Math.random() * 100;
+
+  if (roll < 20) {
+    const outcomes = [-5, -5, -10, -10] as const;
+    return { gain: outcomes[randomInt(0, outcomes.length - 1)], zone: 'negative', probability: 20 };
+  }
+
+  if (roll < 40) {
+    const outcomes = [5, 5, 10, 10] as const;
+    return { gain: outcomes[randomInt(0, outcomes.length - 1)], zone: 'positive', probability: 20 };
+  }
+
+  if (roll < 88) {
+    return { gain: 0, zone: 'neutral', probability: 48 };
+  }
+
+  if (roll < 88.5) {
+    return { gain: 50, zone: 'plus50', probability: 0.5 };
+  }
+
+  if (roll < 90) {
+    return { gain: -50, zone: 'minus50', probability: 1.5 };
+  }
+
+  return { gain: 0, zone: 'neutral', probability: 10 };
+};
+
+const pickWheelAngle = (zone: WheelZone): number => {
+  const ranges: Record<WheelZone, [number, number]> = {
+    negative: [0, 72],
+    positive: [72, 144],
+    neutral: [144, 352.8],
+    plus50: [352.8, 354.6],
+    minus50: [354.6, 360]
+  };
+
+  const [start, end] = ranges[zone];
+  return start + Math.random() * (end - start);
+};
+
 export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
   const timeoutRefs = useRef<number[]>([]);
   const texasRoundRef = useRef<{ player: DealtCard[]; board: DealtCard[]; opponents: DealtCard[][] } | null>(null);
@@ -274,6 +327,9 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
   const [wheelSpins, setWheelSpins] = useState(0);
   const [wheelStreak, setWheelStreak] = useState(0);
   const [wheelLastGain, setWheelLastGain] = useState(0);
+  const [wheelZone, setWheelZone] = useState<WheelZone>('neutral');
+  const [wheelZoneProbability, setWheelZoneProbability] = useState(58);
+  const [wheelHistory, setWheelHistory] = useState<readonly WheelHistoryItem[]>([]);
 
   const [fortune, setFortune] = useState<FortuneState>({
     ready: false,
@@ -353,7 +409,6 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
 
     const bestOpponentScore = opponentScores.reduce((best, current) => (compareHands(current, best) > 0 ? current : best));
     const compareWithBestOpponent = compareHands(playerScore, bestOpponentScore);
-
     const hasOpponentEqualPlayer = opponentScores.some((score) => compareHands(score, playerScore) === 0);
 
     const outcome: TexasOutcome = compareWithBestOpponent > 0 ? 'win' : compareWithBestOpponent < 0 ? 'lose' : hasOpponentEqualPlayer ? 'tie' : 'win';
@@ -373,17 +428,29 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
     }
 
     setWheelSpinning(true);
-    const rewardIndex = randomInt(0, WHEEL_REWARDS.length - 1);
-    const reward = WHEEL_REWARDS[rewardIndex];
-    const wheelStep = 360 / WHEEL_REWARDS.length;
-    setWheelAngle((angle) => angle + 1440 + rewardIndex * wheelStep + randomInt(0, 10));
+    const result = pickWheelResult();
+    const sectorAngle = pickWheelAngle(result.zone);
+    setWheelAngle((angle) => angle + 1440 + sectorAngle);
 
     queueTimeout(() => {
+      const nextSpinCount = wheelSpins + 1;
+      const historyItem: WheelHistoryItem = {
+        id: Date.now(),
+        gain: result.gain,
+        zone: result.zone,
+        probability: result.zone === 'neutral' ? 58 : result.probability,
+        spin: nextSpinCount,
+        time: new Date().toLocaleTimeString('en-US', { hour12: false })
+      };
+
       setWheelSpinning(false);
-      setWheelSpins((count) => count + 1);
-      setWheelLastGain(reward);
-      setWheelStreak((value) => (reward >= 24 ? value + 1 : 0));
-      addScore(reward);
+      setWheelSpins(nextSpinCount);
+      setWheelLastGain(result.gain);
+      setWheelZone(result.zone);
+      setWheelZoneProbability(result.zone === 'neutral' ? 58 : result.probability);
+      setWheelStreak((value) => (result.gain > 0 ? value + 1 : 0));
+      setWheelHistory((items) => [historyItem, ...items].slice(0, 24));
+      addScore(result.gain);
     }, 960);
   };
 
@@ -447,6 +514,9 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
     wheelSpins,
     wheelStreak,
     wheelLastGain,
+    wheelZone,
+    wheelZoneProbability,
+    wheelHistory,
     fortune,
     jackpotLastGain,
     jackpotWindowOpen,

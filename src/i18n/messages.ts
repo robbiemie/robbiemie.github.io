@@ -43,6 +43,19 @@ type WorldPlayText = {
   fortuneNotReady: string;
   wheelSpins: string;
   wheelStreak: string;
+  wheelRuleTitle: string;
+  wheelZoneLabel: string;
+  wheelZoneNegative: string;
+  wheelZonePositive: string;
+  wheelZoneNeutral: string;
+  wheelZonePlus50: string;
+  wheelZoneMinus50: string;
+  wheelRateLabel: string;
+  wheelHistoryAction: string;
+  wheelHistoryTitle: string;
+  wheelHistoryEmpty: string;
+  wheelHistoryZone: string;
+  focusBack: string;
   lastGain: string;
   jackpotWindow: string;
   jackpotOpen: string;
@@ -185,6 +198,19 @@ export const messages: Record<Locale, Messages> = {
         fortuneNotReady: 'Enter your birthday to generate today fortune.',
         wheelSpins: 'Wheel Spins',
         wheelStreak: 'Hot Streak',
+        wheelRuleTitle: 'Wheel Rules',
+        wheelZoneLabel: 'Hit Zone',
+        wheelZoneNegative: 'Penalty Zone',
+        wheelZonePositive: 'Reward Zone',
+        wheelZoneNeutral: 'Neutral Zone',
+        wheelZonePlus50: 'Big Bonus',
+        wheelZoneMinus50: 'Big Trap',
+        wheelRateLabel: 'Rate',
+        wheelHistoryAction: 'View Records',
+        wheelHistoryTitle: 'Spin Records',
+        wheelHistoryEmpty: 'No records yet.',
+        wheelHistoryZone: 'Zone',
+        focusBack: 'Back To Stages',
         lastGain: 'Last Gain',
         jackpotWindow: 'Jackpot Window',
         jackpotOpen: 'OPEN',
@@ -292,6 +318,19 @@ export const messages: Record<Locale, Messages> = {
         fortuneNotReady: '请输入生日，生成今日运势。',
         wheelSpins: '转盘次数',
         wheelStreak: '连击热度',
+        wheelRuleTitle: '转盘规则',
+        wheelZoneLabel: '命中区间',
+        wheelZoneNegative: '扣分区',
+        wheelZonePositive: '加分区',
+        wheelZoneNeutral: '不变区',
+        wheelZonePlus50: '大奖区',
+        wheelZoneMinus50: '陷阱区',
+        wheelRateLabel: '概率',
+        wheelHistoryAction: '查看记录',
+        wheelHistoryTitle: '转盘记录',
+        wheelHistoryEmpty: '暂无记录。',
+        wheelHistoryZone: '区间',
+        focusBack: '返回关卡',
         lastGain: '本次得分',
         jackpotWindow: '头奖窗口',
         jackpotOpen: '进行中',
