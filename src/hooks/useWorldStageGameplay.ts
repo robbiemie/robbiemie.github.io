@@ -20,6 +20,8 @@ type WheelHistoryItem = {
   time: string;
 };
 
+type WheelSegmentRange = [number, number];
+
 const CARD_SUITS = ['S', 'H', 'D', 'C'] as const;
 const CARD_RANKS = ['A', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2'] as const;
 const RANK_VALUE_MAP: Record<string, number> = {
@@ -293,17 +295,53 @@ const pickWheelResult = (): WheelResult => {
   return { gain: 0, zone: 'neutral', probability: 10 };
 };
 
-const pickWheelAngle = (zone: WheelZone): number => {
-  const ranges: Record<WheelZone, [number, number]> = {
-    negative: [0, 72],
-    positive: [72, 144],
-    neutral: [144, 352.8],
-    plus50: [352.8, 354.6],
-    minus50: [354.6, 360]
-  };
+const WHEEL_ZONE_SEGMENTS: Record<WheelZone, WheelSegmentRange[]> = {
+  neutral: [
+    [0, 52.2],
+    [86.2, 130.2],
+    [156.2, 192.2],
+    [214.2, 244.2],
+    [268.2, 293.2],
+    [309.2, 330.8]
+  ],
+  negative: [
+    [52.2, 70.2],
+    [130.2, 144.2],
+    [192.2, 204.2],
+    [244.2, 254.2],
+    [293.2, 301.2],
+    [330.8, 340.8]
+  ],
+  positive: [
+    [70.2, 86.2],
+    [144.2, 156.2],
+    [204.2, 214.2],
+    [254.2, 268.2],
+    [301.2, 309.2],
+    [340.8, 352.8]
+  ],
+  plus50: [[355.2, 357.0]],
+  minus50: [
+    [352.8, 355.2],
+    [357.0, 360.0]
+  ]
+};
 
-  const [start, end] = ranges[zone];
-  return start + Math.random() * (end - start);
+const pickWheelAngle = (zone: WheelZone): number => {
+  const segments = WHEEL_ZONE_SEGMENTS[zone];
+  const totalSpan = segments.reduce((sum, [start, end]) => sum + (end - start), 0);
+  let cursor = Math.random() * totalSpan;
+
+  for (const [start, end] of segments) {
+    const span = end - start;
+    if (cursor <= span) {
+      return start + Math.random() * span;
+    }
+    cursor -= span;
+  }
+
+  const [fallbackStart, fallbackEnd] = segments[segments.length - 1];
+  return fallbackStart + Math.random() * (fallbackEnd - fallbackStart);
 };
 
 export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
@@ -429,8 +467,12 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
 
     setWheelSpinning(true);
     const result = pickWheelResult();
-    const sectorAngle = pickWheelAngle(result.zone);
-    setWheelAngle((angle) => angle + 1440 + sectorAngle);
+    const targetAngle = pickWheelAngle(result.zone);
+    setWheelAngle((angle) => {
+      const normalizedCurrentAngle = ((angle % 360) + 360) % 360;
+      const deltaToTarget = (targetAngle - normalizedCurrentAngle + 360) % 360;
+      return angle + 1440 + deltaToTarget;
+    });
 
     queueTimeout(() => {
       const nextSpinCount = wheelSpins + 1;
