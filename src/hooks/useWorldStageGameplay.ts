@@ -20,6 +20,8 @@ type WheelHistoryItem = {
 type WheelSegmentRange = [number, number];
 type ScoreSource = 'texas' | 'wheel' | 'fortune' | 'jackpot';
 type ZodiacSign = 'rat' | 'ox' | 'tiger' | 'rabbit' | 'dragon' | 'snake' | 'horse' | 'goat' | 'monkey' | 'rooster' | 'dog' | 'pig';
+export type FortuneProfileMethod = 'zodiac' | 'mbti' | 'constellation';
+type FortuneTier = 'sleep' | 'steady' | 'good' | 'great' | 'legend';
 type GomokuStone = 'empty' | 'black' | 'white';
 type GomokuWinner = 'black' | 'white' | 'draw' | null;
 
@@ -53,7 +55,44 @@ const RANK_VALUE_MAP: Record<string, number> = {
 
 const LUCKY_COLORS = ['Ruby Red', 'Ocean Blue', 'Mint Green', 'Sun Gold', 'Sky Purple'] as const;
 const LUCKY_TIMES = ['09:00-11:00', '11:00-13:00', '14:00-16:00', '17:00-19:00', '20:00-22:00'] as const;
+const FORTUNE_CONSTELLATION_COUNT = 12;
+const FORTUNE_MBTI_COUNT = 16;
+const FORTUNE_ZODIAC_TREND_COUNT = 8;
+const FORTUNE_GROWTH_ACTION_COUNT = 8;
+const FORTUNE_SOCIAL_STYLE_COUNT = 8;
 const ZODIAC_SIGNS: readonly ZodiacSign[] = ['rat', 'ox', 'tiger', 'rabbit', 'dragon', 'snake', 'horse', 'goat', 'monkey', 'rooster', 'dog', 'pig'];
+const MBTI_TYPES = [
+  'intj',
+  'intp',
+  'entj',
+  'entp',
+  'infj',
+  'infp',
+  'enfj',
+  'enfp',
+  'istj',
+  'isfj',
+  'estj',
+  'esfj',
+  'istp',
+  'isfp',
+  'estp',
+  'esfp'
+] as const;
+const CONSTELLATION_TYPES = [
+  'aries',
+  'taurus',
+  'gemini',
+  'cancer',
+  'leo',
+  'virgo',
+  'libra',
+  'scorpio',
+  'sagittarius',
+  'capricorn',
+  'aquarius',
+  'pisces'
+] as const;
 const GOMOKU_SIZE = 9;
 
 export type TexasHandCode =
@@ -72,8 +111,12 @@ type TexasOutcome = 'pending' | 'win' | 'lose' | 'tie' | 'fold';
 type FortuneState = {
   ready: boolean;
   locked: boolean;
+  method: FortuneProfileMethod | null;
+  profileValue: string;
   zodiac: ZodiacSign | null;
   lastGain: number;
+  score10: number;
+  tier: FortuneTier;
   overall: number;
   career: number;
   love: number;
@@ -81,6 +124,11 @@ type FortuneState = {
   luckyNumber: number;
   luckyColor: string;
   luckyTime: string;
+  constellationIndex: number;
+  mbtiIndex: number;
+  zodiacTrendIndex: number;
+  growthActionIndex: number;
+  socialStyleIndex: number;
 };
 
 type GameplayState = {
@@ -105,6 +153,7 @@ type GameplayState = {
   wheelLastGain: number;
   wheelZone: WheelZone;
   wheelZoneProbability: number;
+  wheelGradient: string;
   wheelHistory: readonly WheelHistoryItem[];
   fortune: FortuneState;
   jackpotLastGain: number;
@@ -120,7 +169,7 @@ type GameplayActions = {
   revealTexas: () => void;
   foldTexas: () => void;
   playWheel: () => void;
-  playFortune: (zodiac: string) => void;
+  playFortune: (value: string, method: FortuneProfileMethod) => void;
   playJackpot: (index: number) => void;
   resetJackpot: () => void;
 };
@@ -322,6 +371,22 @@ const isZodiacValid = (zodiac: string): zodiac is ZodiacSign => {
   return ZODIAC_SIGNS.includes(zodiac as ZodiacSign);
 };
 
+const isMbtiValid = (value: string): boolean => {
+  return MBTI_TYPES.includes(value as (typeof MBTI_TYPES)[number]);
+};
+
+const isConstellationValid = (value: string): boolean => {
+  return CONSTELLATION_TYPES.includes(value as (typeof CONSTELLATION_TYPES)[number]);
+};
+
+const getFortuneTier = (score10: number): FortuneTier => {
+  if (score10 >= 9) return 'legend';
+  if (score10 >= 7) return 'great';
+  if (score10 >= 5) return 'good';
+  if (score10 >= 3) return 'steady';
+  return 'sleep';
+};
+
 const createShuffledDeck = (): DealtCard[] => {
   const deck = CARD_SUITS.flatMap((suit) => CARD_RANKS.map((rank) => ({ rank, suit })));
   for (let index = deck.length - 1; index > 0; index -= 1) {
@@ -334,62 +399,126 @@ const createShuffledDeck = (): DealtCard[] => {
 const pickWheelResult = (): WheelResult => {
   const roll = Math.random() * 100;
 
-  if (roll < 20) {
+  if (roll < 44) {
     const outcomes = [-1, -2, -2, -3] as const;
-    return { gain: outcomes[randomInt(0, outcomes.length - 1)], zone: 'negative', probability: 20 };
-  }
-
-  if (roll < 40) {
-    const outcomes = [1, 2, 2, 3] as const;
-    return { gain: outcomes[randomInt(0, outcomes.length - 1)], zone: 'positive', probability: 20 };
+    return { gain: outcomes[randomInt(0, outcomes.length - 1)], zone: 'negative', probability: 44 };
   }
 
   if (roll < 88) {
-    return { gain: 0, zone: 'neutral', probability: 48 };
+    const outcomes = [1, 2, 2, 3] as const;
+    return { gain: outcomes[randomInt(0, outcomes.length - 1)], zone: 'positive', probability: 44 };
   }
 
-  if (roll < 88.5) {
+  if (roll < 98) {
+    return { gain: 0, zone: 'neutral', probability: 10 };
+  }
+
+  if (roll < 98.5) {
     return { gain: 10, zone: 'plus50', probability: 0.5 };
   }
 
-  if (roll < 90) {
-    return { gain: -8, zone: 'minus50', probability: 1.5 };
-  }
-
-  return { gain: 0, zone: 'neutral', probability: 10 };
+  return { gain: -8, zone: 'minus50', probability: 1.5 };
 };
 
-const WHEEL_ZONE_SEGMENTS: Record<WheelZone, WheelSegmentRange[]> = {
-  neutral: [
-    [0, 52.2],
-    [86.2, 130.2],
-    [156.2, 192.2],
-    [214.2, 244.2],
-    [268.2, 293.2],
-    [309.2, 330.8]
-  ],
-  negative: [
-    [52.2, 70.2],
-    [130.2, 144.2],
-    [192.2, 204.2],
-    [244.2, 254.2],
-    [293.2, 301.2],
-    [330.8, 340.8]
-  ],
-  positive: [
-    [70.2, 86.2],
-    [144.2, 156.2],
-    [204.2, 214.2],
-    [254.2, 268.2],
-    [301.2, 309.2],
-    [340.8, 352.8]
-  ],
-  plus50: [[355.2, 357.0]],
-  minus50: [
-    [352.8, 355.2],
-    [357.0, 360.0]
-  ]
+const WHEEL_ZONE_TOTAL_DEGREES: Record<WheelZone, number> = {
+  negative: 158.4,
+  positive: 158.4,
+  neutral: 36,
+  plus50: 1.8,
+  minus50: 5.4
 };
+
+const WHEEL_ZONE_SPAN_RATIOS: Record<WheelZone, readonly number[]> = {
+  negative: [0.25, 0.08, 0.18, 0.12, 0.22, 0.15],
+  positive: [0.2, 0.14, 0.1, 0.22, 0.08, 0.26],
+  neutral: [0.36, 0.18, 0.24, 0.12, 0.1],
+  plus50: [1],
+  minus50: [0.4, 0.6]
+};
+
+const WHEEL_ZONE_COLORS: Record<WheelZone, string> = {
+  negative: '#ff8f84',
+  positive: '#7fd870',
+  neutral: '#8ec4ff',
+  plus50: '#ffd44e',
+  minus50: '#ef4f45'
+};
+
+const createWheelSegmentsData = (): { segments: Record<WheelZone, WheelSegmentRange[]>; gradient: string } => {
+  const segments: Record<WheelZone, WheelSegmentRange[]> = {
+    negative: [],
+    positive: [],
+    neutral: [],
+    plus50: [],
+    minus50: []
+  };
+
+  const buildSpans = (zone: WheelZone): number[] => {
+    const totalDegrees = WHEEL_ZONE_TOTAL_DEGREES[zone];
+    const ratios = WHEEL_ZONE_SPAN_RATIOS[zone];
+    const spans = ratios.map((ratio) => totalDegrees * ratio);
+    const consumed = spans.reduce((sum, span) => sum + span, 0);
+    const diff = totalDegrees - consumed;
+    spans[spans.length - 1] += diff;
+    return spans;
+  };
+
+  const spanPool: Record<WheelZone, number[]> = {
+    negative: buildSpans('negative'),
+    positive: buildSpans('positive'),
+    neutral: buildSpans('neutral'),
+    plus50: buildSpans('plus50'),
+    minus50: buildSpans('minus50')
+  };
+
+  // Mixed big/small slices, avoiding the previous evenly repeated pattern.
+  const plan: WheelZone[] = [
+    'negative',
+    'neutral',
+    'positive',
+    'negative',
+    'positive',
+    'neutral',
+    'negative',
+    'plus50',
+    'positive',
+    'negative',
+    'neutral',
+    'positive',
+    'minus50',
+    'negative',
+    'positive',
+    'neutral',
+    'negative',
+    'positive',
+    'minus50',
+    'negative'
+  ];
+
+  let cursor = 0;
+  const gradientStops: string[] = [];
+
+  plan.forEach((zone, index) => {
+    const span = spanPool[zone].shift();
+    if (!span) {
+      return;
+    }
+    const start = cursor;
+    const end = index === plan.length - 1 ? 360 : cursor + span;
+    segments[zone].push([start, end]);
+    gradientStops.push(`${WHEEL_ZONE_COLORS[zone]} ${start.toFixed(3)}deg ${end.toFixed(3)}deg`);
+    cursor = end;
+  });
+
+  return {
+    segments,
+    gradient: `conic-gradient(from 0deg, ${gradientStops.join(', ')})`
+  };
+};
+
+const WHEEL_SEGMENTS_DATA = createWheelSegmentsData();
+const WHEEL_ZONE_SEGMENTS = WHEEL_SEGMENTS_DATA.segments;
+const WHEEL_GRADIENT = WHEEL_SEGMENTS_DATA.gradient;
 
 const pickWheelAngle = (zone: WheelZone): number => {
   const segments = WHEEL_ZONE_SEGMENTS[zone];
@@ -537,21 +666,30 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
   const [wheelStreak, setWheelStreak] = useState(0);
   const [wheelLastGain, setWheelLastGain] = useState(0);
   const [wheelZone, setWheelZone] = useState<WheelZone>('neutral');
-  const [wheelZoneProbability, setWheelZoneProbability] = useState(58);
+  const [wheelZoneProbability, setWheelZoneProbability] = useState(10);
   const [wheelHistory, setWheelHistory] = useState<readonly WheelHistoryItem[]>([]);
 
   const [fortune, setFortune] = useState<FortuneState>({
     ready: false,
     locked: false,
+    method: null,
+    profileValue: '',
     zodiac: null,
     lastGain: 0,
+    score10: 0,
+    tier: 'sleep',
     overall: 0,
     career: 0,
     love: 0,
     wealth: 0,
     luckyNumber: 0,
     luckyColor: LUCKY_COLORS[0],
-    luckyTime: LUCKY_TIMES[0]
+    luckyTime: LUCKY_TIMES[0],
+    constellationIndex: 0,
+    mbtiIndex: 0,
+    zodiacTrendIndex: 0,
+    growthActionIndex: 0,
+    socialStyleIndex: 0
   });
 
   const [jackpotLastGain, setJackpotLastGain] = useState(0);
@@ -696,7 +834,7 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
         id: Date.now(),
         gain: result.gain,
         zone: result.zone,
-        probability: result.zone === 'neutral' ? 58 : result.probability,
+        probability: result.zone === 'neutral' ? 10 : result.probability,
         spin: nextSpinCount,
         time: new Date().toLocaleTimeString('en-US', { hour12: false })
       };
@@ -706,48 +844,84 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
       const appliedGain = addScore(result.gain, 'wheel');
       setWheelLastGain(appliedGain);
       setWheelZone(result.zone);
-      setWheelZoneProbability(result.zone === 'neutral' ? 58 : result.probability);
+      setWheelZoneProbability(result.zone === 'neutral' ? 10 : result.probability);
       setWheelStreak((value) => (result.gain > 0 ? value + 1 : 0));
       setWheelHistory((items) => [historyItem, ...items].slice(0, 24));
-    }, 960);
+    }, 1120);
   };
 
-  const playFortune = (zodiac: string) => {
+  const playFortune = (value: string, method: FortuneProfileMethod) => {
     if (fortune.locked) {
       return;
     }
 
-    const normalizedZodiac = zodiac.trim();
-    if (!isZodiacValid(normalizedZodiac)) {
-      setFortune((prevState) => ({ ...prevState, ready: false, lastGain: 0 }));
+    const normalizedValue = value.trim().toLowerCase();
+    const isValidInput =
+      (method === 'zodiac' && isZodiacValid(normalizedValue)) ||
+      (method === 'mbti' && isMbtiValid(normalizedValue)) ||
+      (method === 'constellation' && isConstellationValid(normalizedValue));
+
+    if (!isValidInput) {
+      setFortune((prevState) => ({
+        ...prevState,
+        ready: false,
+        method: null,
+        profileValue: '',
+        lastGain: 0,
+        score10: 0,
+        tier: 'sleep',
+        constellationIndex: 0,
+        mbtiIndex: 0,
+        zodiacTrendIndex: 0,
+        growthActionIndex: 0,
+        socialStyleIndex: 0
+      }));
       return;
     }
 
-    const seed = hashSeed(`${normalizedZodiac}-${getTodayKey()}`);
-    const overall = 60 + (seed % 41);
-    const career = 50 + ((seed >> 2) % 51);
-    const love = 50 + ((seed >> 4) % 51);
-    const wealth = 50 + ((seed >> 6) % 51);
+    const dayKey = getTodayKey();
+    const seedBase = `${method}-${normalizedValue}`;
+    const seed = hashSeed(`${seedBase}-${dayKey}`);
+    const overall = seed % 101;
+    const career = hashSeed(`${seedBase}-career-${dayKey}`) % 101;
+    const love = hashSeed(`${seedBase}-love-${dayKey}`) % 101;
+    const wealth = hashSeed(`${seedBase}-wealth-${dayKey}`) % 101;
     const luckyNumber = (seed % 9) + 1;
     const luckyColor = LUCKY_COLORS[seed % LUCKY_COLORS.length];
     const luckyTime = LUCKY_TIMES[seed % LUCKY_TIMES.length];
+    const constellationIndex = hashSeed(`${seedBase}-constellation-${dayKey}`) % FORTUNE_CONSTELLATION_COUNT;
+    const mbtiIndex = hashSeed(`${seedBase}-mbti-${dayKey}`) % FORTUNE_MBTI_COUNT;
+    const zodiacTrendIndex = hashSeed(`${seedBase}-zodiac-trend-${dayKey}`) % FORTUNE_ZODIAC_TREND_COUNT;
+    const growthActionIndex = hashSeed(`${seedBase}-growth-action-${dayKey}`) % FORTUNE_GROWTH_ACTION_COUNT;
+    const socialStyleIndex = hashSeed(`${seedBase}-social-style-${dayKey}`) % FORTUNE_SOCIAL_STYLE_COUNT;
 
     const averageFortune = Math.round((overall + career + love + wealth) / 4);
-    const nextGain = averageFortune >= 85 ? 5 : averageFortune >= 72 ? 3 : -2;
+    const score10 = Math.max(0, Math.min(10, Math.round(averageFortune / 10)));
+    const nextGain = score10;
+    const tier = getFortuneTier(score10);
 
     const appliedGain = addScore(nextGain, 'fortune');
     setFortune({
       ready: true,
       locked: true,
-      zodiac: normalizedZodiac,
+      method,
+      profileValue: normalizedValue,
+      zodiac: method === 'zodiac' && isZodiacValid(normalizedValue) ? normalizedValue : null,
       lastGain: appliedGain,
+      score10,
+      tier,
       overall,
       career,
       love,
       wealth,
       luckyNumber,
       luckyColor,
-      luckyTime
+      luckyTime,
+      constellationIndex,
+      mbtiIndex,
+      zodiacTrendIndex,
+      growthActionIndex,
+      socialStyleIndex
     });
   };
 
@@ -859,6 +1033,7 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
     wheelLastGain,
     wheelZone,
     wheelZoneProbability,
+    wheelGradient: WHEEL_GRADIENT,
     wheelHistory,
     fortune,
     jackpotLastGain,

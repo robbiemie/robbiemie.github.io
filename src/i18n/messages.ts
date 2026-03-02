@@ -32,6 +32,13 @@ type WorldPlayText = {
   texasOutcomeLose: string;
   texasOutcomeTie: string;
   texasOutcomeFold: string;
+  fortuneMethodLabel: string;
+  fortuneMethodPlaceholder: string;
+  fortuneMethodOptions: {
+    zodiac: string;
+    mbti: string;
+    constellation: string;
+  };
   zodiacLabel: string;
   zodiacPlaceholder: string;
   zodiacSelectHint: string;
@@ -50,6 +57,12 @@ type WorldPlayText = {
     dog: string;
     pig: string;
   };
+  mbtiLabel: string;
+  mbtiPlaceholder: string;
+  mbtiOptions: Record<string, string>;
+  constellationLabel: string;
+  constellationPlaceholder: string;
+  constellationOptions: Record<string, string>;
   fortuneSummary: string;
   fortuneOverall: string;
   fortuneCareer: string;
@@ -58,6 +71,27 @@ type WorldPlayText = {
   fortuneLuckyNumber: string;
   fortuneLuckyColor: string;
   fortuneLuckyTime: string;
+  fortuneConstellation: string;
+  fortuneMbti: string;
+  fortuneZodiacTrend: string;
+  fortuneGrowthAction: string;
+  fortuneSocialStyle: string;
+  fortuneConstellationPool: string[];
+  fortuneMbtiPool: string[];
+  fortuneZodiacTrendPool: string[];
+  fortuneGrowthActionPool: string[];
+  fortuneSocialStylePool: string[];
+  fortuneScoreLabel: string;
+  fortuneTierLabel: string;
+  fortuneTierNames: {
+    sleep: string;
+    steady: string;
+    good: string;
+    great: string;
+    legend: string;
+  };
+  fortuneCongratsTitle: string;
+  fortuneCongratsDescription: string;
   fortuneNotReady: string;
   wheelSpins: string;
   wheelStreak: string;
@@ -175,7 +209,7 @@ export const messages: Record<Locale, Messages> = {
       items: [
         { title: "Texas Hold'em", subtitle: 'Deal fast. Compare hands. Score.' },
         { title: 'Lucky Wheel', subtitle: 'One spin. One result. Keep going.' },
-        { title: 'Zodiac Fortune', subtitle: 'Pick once. Reveal today luck.' },
+        { title: 'Astro Persona', subtitle: 'One-time profile. Welfare stage.' },
         { title: 'Gomoku Duel', subtitle: 'Connect five before the AI.' }
       ],
       details: [
@@ -198,12 +232,12 @@ export const messages: Record<Locale, Messages> = {
           ]
         },
         {
-          title: 'Zodiac Fortune: One Pick',
-          description: 'Choose one zodiac sign and lock it.',
+          title: 'Astro Persona: Welfare Stage',
+          description: 'One run gives a 0-10 score. No penalty.',
           highlights: [
-            'Simple selector.',
-            'One-time choice.',
-            'Career, love, wealth.'
+            'One-time generation.',
+            'Score only, no deduction.',
+            'Tiered luck result.'
           ]
         },
         {
@@ -224,7 +258,7 @@ export const messages: Record<Locale, Messages> = {
         texasRevealAction: 'Reveal Showdown',
         texasFoldAction: 'Fold',
         wheelAction: 'Spin Wheel',
-        fortuneAction: 'Generate Fortune',
+        fortuneAction: 'Generate Profile',
         jackpotAction: 'Restart Board',
         texasHands: 'Hands Played',
         texasResult: 'Best Hand',
@@ -237,10 +271,17 @@ export const messages: Record<Locale, Messages> = {
         texasOutcomeLose: 'You Lose',
         texasOutcomeTie: 'Tie',
         texasOutcomeFold: 'Folded',
+        fortuneMethodLabel: 'Profile By',
+        fortuneMethodPlaceholder: 'Select one method',
+        fortuneMethodOptions: {
+          zodiac: 'Chinese Zodiac',
+          mbti: 'MBTI',
+          constellation: 'Constellation'
+        },
         zodiacLabel: 'Zodiac Sign',
         zodiacPlaceholder: 'Select one zodiac sign',
-        zodiacSelectHint: 'One pick only. Confirm first.',
-        zodiacLockedHint: 'Locked. You cannot change it now.',
+        zodiacSelectHint: 'One pick only. Confirm before generating.',
+        zodiacLockedHint: 'Locked after generation. You cannot change it now.',
         zodiacOptions: {
           rat: 'Rat',
           ox: 'Ox',
@@ -255,7 +296,43 @@ export const messages: Record<Locale, Messages> = {
           dog: 'Dog',
           pig: 'Pig'
         },
-        fortuneSummary: 'Today Fortune',
+        mbtiLabel: 'MBTI Type',
+        mbtiPlaceholder: 'Select one MBTI type',
+        mbtiOptions: {
+          intj: 'INTJ - Architect',
+          intp: 'INTP - Logician',
+          entj: 'ENTJ - Commander',
+          entp: 'ENTP - Debater',
+          infj: 'INFJ - Advocate',
+          infp: 'INFP - Mediator',
+          enfj: 'ENFJ - Protagonist',
+          enfp: 'ENFP - Campaigner',
+          istj: 'ISTJ - Logistician',
+          isfj: 'ISFJ - Defender',
+          estj: 'ESTJ - Executive',
+          esfj: 'ESFJ - Consul',
+          istp: 'ISTP - Virtuoso',
+          isfp: 'ISFP - Adventurer',
+          estp: 'ESTP - Entrepreneur',
+          esfp: 'ESFP - Entertainer'
+        },
+        constellationLabel: 'Constellation',
+        constellationPlaceholder: 'Select one constellation',
+        constellationOptions: {
+          aries: 'Aries',
+          taurus: 'Taurus',
+          gemini: 'Gemini',
+          cancer: 'Cancer',
+          leo: 'Leo',
+          virgo: 'Virgo',
+          libra: 'Libra',
+          scorpio: 'Scorpio',
+          sagittarius: 'Sagittarius',
+          capricorn: 'Capricorn',
+          aquarius: 'Aquarius',
+          pisces: 'Pisces'
+        },
+        fortuneSummary: 'Astro Profile',
         fortuneOverall: 'Overall',
         fortuneCareer: 'Career',
         fortuneLove: 'Love',
@@ -263,7 +340,46 @@ export const messages: Record<Locale, Messages> = {
         fortuneLuckyNumber: 'Lucky Number',
         fortuneLuckyColor: 'Lucky Color',
         fortuneLuckyTime: 'Lucky Time',
-        fortuneNotReady: 'Select one zodiac sign to generate today fortune.',
+        fortuneConstellation: 'Constellation Archetype',
+        fortuneMbti: 'MBTI Signal',
+        fortuneZodiacTrend: 'Zodiac Trend',
+        fortuneGrowthAction: 'Growth Action',
+        fortuneSocialStyle: 'Social Style',
+        fortuneConstellationPool: ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'],
+        fortuneMbtiPool: ['INTJ Strategist', 'INTP Analyst', 'ENTJ Commander', 'ENTP Debater', 'INFJ Advocate', 'INFP Mediator', 'ENFJ Mentor', 'ENFP Campaigner', 'ISTJ Inspector', 'ISFJ Protector', 'ESTJ Executive', 'ESFJ Coordinator', 'ISTP Craftsman', 'ISFP Creator', 'ESTP Challenger', 'ESFP Performer'],
+        fortuneZodiacTrendPool: [
+          'Rat energy boosts rapid decisions today.',
+          'Ox rhythm favors stable long-term moves.',
+          'Tiger momentum supports bold breakthroughs.',
+          'Rabbit luck rewards gentle but firm choices.',
+          'Dragon timing is ideal for public visibility.',
+          'Snake intuition helps you read hidden signals.',
+          'Horse pace unlocks high execution output.',
+          'Pig aura attracts helpful collaboration.'
+        ],
+        fortuneGrowthActionPool: [
+          'Pick one hard task and finish it in 25 minutes.',
+          'Move one pending plan into a visible checklist.',
+          'Send one concise update to reduce uncertainty.',
+          'Cut one low-value meeting from your schedule.',
+          'Use a 2-step goal: start now, refine later.',
+          'Protect one deep-work block with no interruptions.',
+          'Turn one idea into a public, testable draft.',
+          'Close the day with a three-line retro note.'
+        ],
+        fortuneSocialStylePool: ['Connector', 'Builder', 'Spark', 'Anchor', 'Explorer', 'Mediator', 'Driver', 'Visionary'],
+        fortuneScoreLabel: 'Score',
+        fortuneTierLabel: 'Tier',
+        fortuneTierNames: {
+          sleep: 'Dormant',
+          steady: 'Stable',
+          good: 'Rising',
+          great: 'Skyline',
+          legend: 'Overdrive'
+        },
+        fortuneCongratsTitle: 'Luck Surge',
+        fortuneCongratsDescription: 'Congrats! Your profile score is off the charts today.',
+        fortuneNotReady: 'Select one method and one option to generate your profile.',
         wheelSpins: 'Wheel Spins',
         wheelStreak: 'Hot Streak',
         wheelRuleTitle: 'Wheel Rules',
@@ -280,7 +396,7 @@ export const messages: Record<Locale, Messages> = {
           'Minimum per round: win/tie at least +1, lose at most -1.',
           'Total score floor for Texas: -20.'
         ],
-        wheelRuleItems: ['Reward zone: +1 to +3 (20%)', 'Penalty zone: -1 to -3 (20%)', 'Neutral zone: 0 (58%)', 'Rare zone: +10 or -8 (2%)'],
+        wheelRuleItems: ['Reward zone: +1 to +3 (44%)', 'Penalty zone: -1 to -3 (44%)', 'Neutral zone: 0 (10%)', 'Rare zone: +10 (0.5%) or -8 (1.5%)'],
         wheelZoneLabel: 'Hit Zone',
         wheelZoneNegative: 'Penalty Zone',
         wheelZonePositive: 'Reward Zone',
@@ -300,7 +416,7 @@ export const messages: Record<Locale, Messages> = {
         scoreSourceLabels: {
           texas: "Texas Hold'em",
           wheel: 'Lucky Wheel',
-          fortune: 'Birthday Fortune',
+          fortune: 'Astro Persona',
           jackpot: 'Jackpot Rush'
         },
         rewardTitle: 'Reward Unlocked',
@@ -370,7 +486,7 @@ export const messages: Record<Locale, Messages> = {
       items: [
         { title: '德州扑克牌', subtitle: '快速发牌，直接结算。' },
         { title: '幸运转盘', subtitle: '一转一结算，节奏快。' },
-        { title: '生肖运势', subtitle: '一次选择，今日解读。' },
+        { title: '星象人格', subtitle: '福利关卡，一次生成。' },
         { title: '五子棋对弈', subtitle: '先连五子即获胜。' }
       ],
       details: [
@@ -385,9 +501,9 @@ export const messages: Record<Locale, Messages> = {
           highlights: ['转动快。', '区间清晰。', '小奖常见，大奖稀有。']
         },
         {
-          title: '生肖运势：单次选择',
-          description: '选择一个生肖后即锁定。',
-          highlights: ['选择简单。', '仅可一次。', '维度清楚。']
+          title: '星象人格：福利关',
+          description: '一次生成，0-10 打分，无扣分项。',
+          highlights: ['仅生成一次。', '只加分不减分。', '按等级判定画像。']
         },
         {
           title: '五子棋对弈：轻策略',
@@ -403,7 +519,7 @@ export const messages: Record<Locale, Messages> = {
         texasRevealAction: '开牌比大小',
         texasFoldAction: '弃牌',
         wheelAction: '转动转盘',
-        fortuneAction: '生成运势',
+        fortuneAction: '生成人格画像',
         jackpotAction: '重开棋盘',
         texasHands: '已玩局数',
         texasResult: '当前牌型',
@@ -416,10 +532,17 @@ export const messages: Record<Locale, Messages> = {
         texasOutcomeLose: '你输了',
         texasOutcomeTie: '平局',
         texasOutcomeFold: '已弃牌',
+        fortuneMethodLabel: '筛选方式',
+        fortuneMethodPlaceholder: '请选择一种方式',
+        fortuneMethodOptions: {
+          zodiac: '生肖',
+          mbti: 'MBTI',
+          constellation: '星座'
+        },
         zodiacLabel: '生肖',
         zodiacPlaceholder: '请选择一个生肖',
-        zodiacSelectHint: '生肖只可选一次，请先确认。',
-        zodiacLockedHint: '已锁定，当前不可更改。',
+        zodiacSelectHint: '仅可选择一次，请确认后生成。',
+        zodiacLockedHint: '生成后将锁定，当前不可更改。',
         zodiacOptions: {
           rat: '鼠',
           ox: '牛',
@@ -434,7 +557,43 @@ export const messages: Record<Locale, Messages> = {
           dog: '狗',
           pig: '猪'
         },
-        fortuneSummary: '今日运势',
+        mbtiLabel: 'MBTI',
+        mbtiPlaceholder: '请选择一个 MBTI',
+        mbtiOptions: {
+          intj: 'INTJ - 建筑师',
+          intp: 'INTP - 逻辑学家',
+          entj: 'ENTJ - 指挥官',
+          entp: 'ENTP - 辩论家',
+          infj: 'INFJ - 提倡者',
+          infp: 'INFP - 调停者',
+          enfj: 'ENFJ - 主人公',
+          enfp: 'ENFP - 竞选者',
+          istj: 'ISTJ - 物流师',
+          isfj: 'ISFJ - 守卫者',
+          estj: 'ESTJ - 总经理',
+          esfj: 'ESFJ - 执政官',
+          istp: 'ISTP - 鉴赏家',
+          isfp: 'ISFP - 探险家',
+          estp: 'ESTP - 企业家',
+          esfp: 'ESFP - 表演者'
+        },
+        constellationLabel: '星座',
+        constellationPlaceholder: '请选择一个星座',
+        constellationOptions: {
+          aries: '白羊座',
+          taurus: '金牛座',
+          gemini: '双子座',
+          cancer: '巨蟹座',
+          leo: '狮子座',
+          virgo: '处女座',
+          libra: '天秤座',
+          scorpio: '天蝎座',
+          sagittarius: '射手座',
+          capricorn: '摩羯座',
+          aquarius: '水瓶座',
+          pisces: '双鱼座'
+        },
+        fortuneSummary: '星象人格画像',
         fortuneOverall: '综合',
         fortuneCareer: '事业',
         fortuneLove: '感情',
@@ -442,7 +601,46 @@ export const messages: Record<Locale, Messages> = {
         fortuneLuckyNumber: '幸运数字',
         fortuneLuckyColor: '幸运色',
         fortuneLuckyTime: '幸运时段',
-        fortuneNotReady: '请选择一个生肖，生成今日运势。',
+        fortuneConstellation: '星座原型',
+        fortuneMbti: 'MBTI 信号',
+        fortuneZodiacTrend: '生肖趋势',
+        fortuneGrowthAction: '成长行动',
+        fortuneSocialStyle: '社交风格',
+        fortuneConstellationPool: ['白羊座', '金牛座', '双子座', '巨蟹座', '狮子座', '处女座', '天秤座', '天蝎座', '射手座', '摩羯座', '水瓶座', '双鱼座'],
+        fortuneMbtiPool: ['INTJ 策略家', 'INTP 分析师', 'ENTJ 指挥官', 'ENTP 辩论家', 'INFJ 倡导者', 'INFP 调停者', 'ENFJ 教练型', 'ENFP 活力派', 'ISTJ 检查官', 'ISFJ 守护者', 'ESTJ 执行官', 'ESFJ 协调者', 'ISTP 实干家', 'ISFP 创作家', 'ESTP 挑战者', 'ESFP 表演者'],
+        fortuneZodiacTrendPool: [
+          '鼠系能量偏快，适合速决。',
+          '牛系节奏稳，适合打基础。',
+          '虎系推进强，适合攻坚任务。',
+          '兔系气场柔和，适合协调沟通。',
+          '龙系曝光位高，适合主动表达。',
+          '蛇系洞察在线，适合策略布局。',
+          '马系执行拉满，适合冲刺产出。',
+          '猪系协作运强，适合联动合作。'
+        ],
+        fortuneGrowthActionPool: [
+          '先完成一个最难任务的第一步。',
+          '把一个想法改成可执行清单。',
+          '给关键协作者发一条短更新。',
+          '删掉一个低价值安排。',
+          '先做 MVP，再做优化。',
+          '为深度工作保留 40 分钟。',
+          '把一个成果公开展示出来。',
+          '睡前复盘三件做对的事。'
+        ],
+        fortuneSocialStylePool: ['连接者', '建造者', '点火者', '稳定器', '探索者', '调和者', '推进者', '愿景者'],
+        fortuneScoreLabel: '得分',
+        fortuneTierLabel: '等级',
+        fortuneTierNames: {
+          sleep: '休眠',
+          steady: '平稳',
+          good: '上扬',
+          great: '高涨',
+          legend: '爆棚'
+        },
+        fortuneCongratsTitle: '画像爆棚',
+        fortuneCongratsDescription: '恭喜你，今日人格画像评分爆棚！',
+        fortuneNotReady: '请选择一种方式并选择对应项，生成人格画像。',
         wheelSpins: '转盘次数',
         wheelStreak: '连击热度',
         wheelRuleTitle: '转盘规则',
@@ -459,7 +657,7 @@ export const messages: Record<Locale, Messages> = {
           '单局最小保护：赢/平至少 +1，输局最多 -1。',
           '德州总分下限保护：-20。'
         ],
-        wheelRuleItems: ['加分区：+1 到 +3（20%）', '扣分区：-1 到 -3（20%）', '不变区：0（58%）', '稀有区：+10 或 -8（2%）'],
+        wheelRuleItems: ['加分区：+1 到 +3（44%）', '扣分区：-1 到 -3（44%）', '不变区：0（10%）', '稀有区：+10（0.5%）或 -8（1.5%）'],
         wheelZoneLabel: '命中区间',
         wheelZoneNegative: '扣分区',
         wheelZonePositive: '加分区',
@@ -479,7 +677,7 @@ export const messages: Record<Locale, Messages> = {
         scoreSourceLabels: {
           texas: '德州扑克牌',
           wheel: '幸运转盘',
-          fortune: '生日运势',
+          fortune: '星象人格',
           jackpot: '头奖冲刺'
         },
         rewardTitle: '奖励已解锁',

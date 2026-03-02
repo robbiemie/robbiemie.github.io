@@ -4,7 +4,7 @@ import { App } from './App';
 import { LocaleProvider } from './i18n/locale-context';
 import { RootStoreProvider } from './stores/root-store-context';
 import { createRootStore } from './stores/root-store';
-import './styles/global.css';
+import './styles/global.scss';
 
 const redirectPath = new URLSearchParams(window.location.search).get('redirect');
 if (redirectPath) {
