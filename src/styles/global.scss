@@ -2353,6 +2353,131 @@ body {
   padding: 0.75rem 0.8rem;
 }
 
+.holiday-countdown-panel + .holiday-countdown-panel {
+  margin-top: 0.5rem;
+}
+
+.holiday-countdown-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.holiday-countdown-toggle {
+  min-height: 26px;
+  border: 2px solid rgba(37, 96, 135, 0.42);
+  border-radius: 999px;
+  background: #fff;
+  padding: 0 0.56rem;
+  font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
+  font-size: 0.66rem;
+  font-weight: 800;
+  color: #1f5e86;
+  cursor: pointer;
+}
+
+.holiday-countdown-toggle:hover {
+  background: rgba(75, 169, 255, 0.12);
+}
+
+.holiday-countdown-panel-body {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.24s ease, opacity 0.2s ease;
+}
+
+.holiday-countdown-panel-body.is-expanded {
+  max-height: 280px;
+  opacity: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.holiday-countdown-custom {
+  margin: 0 0 0.52rem;
+  padding: 0 0 0.52rem;
+  border-bottom: 1px dashed rgba(34, 89, 126, 0.26);
+}
+
+.holiday-countdown-custom-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(126px, auto);
+  align-items: end;
+  gap: 0.4rem;
+  margin-top: 0.34rem;
+}
+
+.holiday-countdown-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(58px, 1fr));
+  gap: 0.26rem;
+}
+
+.holiday-countdown-input-group {
+  display: grid;
+  gap: 0.16rem;
+}
+
+.holiday-countdown-input-group span {
+  font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #2c6488;
+}
+
+.holiday-countdown-input-group input {
+  min-height: 30px;
+  border: 2px solid rgba(38, 92, 128, 0.34);
+  border-radius: 9px;
+  background: #fff;
+  padding: 0.28rem 0.42rem;
+  font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #184565;
+}
+
+.holiday-countdown-input-group input:focus {
+  outline: none;
+  border-color: rgba(53, 127, 176, 0.82);
+}
+
+.holiday-countdown-start {
+  min-height: 30px;
+  border: 2px solid #1d628f;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #4ba9ff 0%, #2d83dc 100%);
+  color: #fff;
+  padding: 0 0.66rem;
+  font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.holiday-countdown-start:hover {
+  filter: brightness(1.04);
+}
+
+.holiday-countdown-clear {
+  min-height: 30px;
+  border: 2px solid rgba(41, 101, 138, 0.46);
+  border-radius: 9px;
+  background: #fff;
+  color: #1d628f;
+  padding: 0 0.54rem;
+  font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.holiday-countdown-clear:hover {
+  background: rgba(75, 169, 255, 0.1);
+}
+
 .holiday-countdown-label {
   margin: 0;
   font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
@@ -2445,6 +2570,21 @@ body {
   .holiday-countdown {
     margin-top: 0.58rem;
     padding: 0.56rem 0.64rem;
+  }
+
+  .holiday-countdown-panel-body.is-expanded {
+    max-height: 260px;
+  }
+
+  .holiday-countdown-custom-form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.34rem;
+  }
+
+  .holiday-countdown-actions,
+  .holiday-countdown-start,
+  .holiday-countdown-clear {
+    width: 100%;
   }
 
   .holiday-countdown-label {
@@ -2793,8 +2933,19 @@ body {
     padding: 0.58rem 0.64rem;
   }
 
-  .holiday-countdown-list {
-    display: none;
+  .holiday-countdown-custom-form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.3rem;
+  }
+
+  .holiday-countdown-actions,
+  .holiday-countdown-start,
+  .holiday-countdown-clear {
+    width: 100%;
+  }
+
+  .holiday-countdown-panel-body.is-expanded {
+    max-height: 220px;
   }
 
   .holiday-countdown-label {

@@ -200,6 +200,18 @@ type Messages = {
     label: string;
     nextPrefix: string;
     ended: string;
+    panelExpand: string;
+    panelCollapse: string;
+    customLabel: string;
+    customNameLabel: string;
+    customDateLabel: string;
+    customNamePlaceholder: string;
+    customDatePlaceholder: string;
+    customStartAction: string;
+    customClearAction: string;
+    customCountdownPrefix: string;
+    customEmpty: string;
+    customExpired: string;
     items: HolidayText[];
   };
 };
@@ -486,6 +498,18 @@ export const messages: Record<Locale, Messages> = {
       label: 'China 2026 Holiday Countdown',
       nextPrefix: 'Next',
       ended: 'All 2026 holidays have started.',
+      panelExpand: 'Expand',
+      panelCollapse: 'Collapse',
+      customLabel: 'Custom Countdown',
+      customNameLabel: 'Name',
+      customDateLabel: 'Date',
+      customNamePlaceholder: 'Enter countdown name',
+      customDatePlaceholder: 'Select target date',
+      customStartAction: 'Start',
+      customClearAction: 'Clear',
+      customCountdownPrefix: 'Target',
+      customEmpty: 'Set a name and date to start.',
+      customExpired: 'Target date reached.',
       items: [
         { name: "New Year's Day", startIso: '2026-01-01T00:00:00+08:00', endIso: '2026-01-03T23:59:59+08:00' },
         { name: 'Spring Festival', startIso: '2026-02-15T00:00:00+08:00', endIso: '2026-02-23T23:59:59+08:00' },
@@ -762,6 +786,18 @@ export const messages: Record<Locale, Messages> = {
       label: '中国 2026 放假倒计时',
       nextPrefix: '下一个',
       ended: '2026 年节假日已全部开始。',
+      panelExpand: '展开',
+      panelCollapse: '收起',
+      customLabel: '自定义倒计时',
+      customNameLabel: '名称',
+      customDateLabel: '日期',
+      customNamePlaceholder: '输入倒计时名称',
+      customDatePlaceholder: '选择目标日期',
+      customStartAction: '开始',
+      customClearAction: '清除',
+      customCountdownPrefix: '目标',
+      customEmpty: '请先设置名称和日期。',
+      customExpired: '目标日期已到达。',
       items: [
         { name: '元旦', startIso: '2026-01-01T00:00:00+08:00', endIso: '2026-01-03T23:59:59+08:00' },
         { name: '春节', startIso: '2026-02-15T00:00:00+08:00', endIso: '2026-02-23T23:59:59+08:00' },
