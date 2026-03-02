@@ -122,11 +122,8 @@ export const WorldSection = () => {
   };
 
   useEffect(() => {
-    if (!isGameplayFocused) {
-      return;
-    }
-
-    // Sync viewport and panel scroll when entering focus mode to avoid stale blank area.
+    // Sync panel scroll on both enter/exit focus mode to avoid stale blank area.
+    // Keep viewport jump only when entering focus mode.
     const rafId = window.requestAnimationFrame(() => {
       const worldSectionElement = worldSectionRef.current;
       const stagePanelElement = stagePanelRef.current;
@@ -135,7 +132,9 @@ export const WorldSection = () => {
       }
 
       worldSectionElement.classList.add('is-revealed');
-      worldSectionElement.scrollIntoView({ behavior: 'auto', block: 'start' });
+      if (isGameplayFocused) {
+        worldSectionElement.scrollIntoView({ behavior: 'auto', block: 'start' });
+      }
       stagePanelElement.scrollTo({ top: 0, behavior: 'auto' });
 
       // Defer one more frame to ensure layout has applied after DOM branch switch.
