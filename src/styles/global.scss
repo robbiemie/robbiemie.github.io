@@ -136,6 +136,7 @@ body {
 
 .hero-section,
 .world-section,
+.muyu-section,
 .showcase-section,
 .knowledge-section {
   padding-left: clamp(1.1rem, 5vw, 5rem);
@@ -3353,5 +3354,243 @@ body {
   .hero-link,
   .knowledge-link {
     width: 100%;
+  }
+}
+
+.muyu-section {
+  --section-bg: #dff3ff;
+  --dot-image: url('/img/bg_dot-blue.png');
+  --dot-size: 22px 22px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: clamp(1rem, 2vh, 1.6rem);
+  padding-top: clamp(4rem, 8vh, 5.2rem);
+  padding-bottom: clamp(2rem, 4vh, 2.8rem);
+}
+
+.section-header-muyu {
+  margin-bottom: 0;
+}
+
+.muyu-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.9fr) minmax(300px, 1.1fr);
+  gap: clamp(1rem, 2.8vw, 2rem);
+  align-items: center;
+}
+
+.muyu-copy {
+  display: grid;
+  gap: 0.7rem;
+  max-width: 460px;
+}
+
+.muyu-description {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
+  font-size: clamp(1rem, 1.9vw, 1.28rem);
+  font-weight: 800;
+  color: #174567;
+  line-height: 1.38;
+}
+
+.muyu-tip {
+  margin: 0;
+  font-size: clamp(0.78rem, 1.2vw, 0.92rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #2f6588;
+}
+
+.muyu-reward-hint {
+  margin: 0.08rem 0 0;
+  font-size: clamp(0.7rem, 1.1vw, 0.84rem);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #25668f;
+}
+
+.muyu-merit-board {
+  display: inline-grid;
+  gap: 0.18rem;
+  min-width: 176px;
+  width: fit-content;
+  padding: 0.56rem 0.88rem;
+  border: 3px solid #1f5b83;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #e7f5ff 100%);
+}
+
+.muyu-merit-board span {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #3f6f92;
+  letter-spacing: 0.04em;
+}
+
+.muyu-merit-board strong {
+  font-family: 'Baloo 2', 'Nunito', sans-serif;
+  font-size: clamp(1.4rem, 4vw, 2.16rem);
+  line-height: 1;
+  color: #1b5f8e;
+}
+
+.muyu-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: clamp(280px, 48vh, 420px);
+  border: 3px solid #276892;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0) 44%),
+    linear-gradient(180deg, #f8fdff 0%, #dcefff 100%);
+  box-shadow: inset 0 -8px 0 rgba(70, 132, 179, 0.2);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cyber-muyu {
+  position: relative;
+  z-index: 2;
+  width: clamp(176px, 28vw, 276px);
+  aspect-ratio: 1.4 / 1;
+  border: 0;
+  padding: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  outline: none;
+  background:
+    radial-gradient(circle at 28% 34%, #f7c285 0%, #d48b47 45%, #9c5b2b 80%, #7a441f 100%);
+  border: 4px solid #6a3a1c;
+  box-shadow: 0 12px 0 rgba(95, 54, 27, 0.28);
+  transform-origin: center 60%;
+  transition: transform 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cyber-muyu:hover {
+  transform: translateY(-2px);
+}
+
+.cyber-muyu:active,
+.cyber-muyu.is-knocking {
+  transform: translateY(3px) scale(0.98);
+}
+
+.cyber-muyu:focus,
+.cyber-muyu:focus-visible {
+  outline: none;
+}
+
+.cyber-muyu-groove {
+  position: absolute;
+  inset: 20% 16% auto;
+  height: 18%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #6f3d1f 0%, #522b15 100%);
+  opacity: 0.72;
+}
+
+.cyber-muyu-core {
+  position: absolute;
+  inset: auto 30% 14%;
+  height: 18%;
+  border-radius: 999px;
+  border: 3px solid #6e3d1e;
+  background: rgba(252, 218, 171, 0.5);
+}
+
+.muyu-stick {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  z-index: 4;
+  width: clamp(106px, 16vw, 158px);
+  height: clamp(18px, 2.3vw, 24px);
+  border-radius: 999px;
+  border: 3px solid #5e2f17;
+  background: linear-gradient(180deg, #f0b467 0%, #c47636 100%);
+  transform-origin: 10% 50%;
+  transform: translate(-58%, -82%) rotate(-34deg);
+}
+
+.muyu-stick::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 3px solid #5e2f17;
+  background: radial-gradient(circle at 35% 35%, #ffd6a2 0%, #d38a49 72%);
+  transform: translateY(-50%);
+}
+
+.muyu-stick.is-knocking {
+  animation: muyu-stick-hit 0.18s ease-out;
+}
+
+.muyu-burst {
+  position: absolute;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  font-family: 'Baloo 2', 'Nunito', sans-serif;
+  font-size: clamp(0.92rem, 1.6vw, 1.2rem);
+  font-weight: 800;
+  color: #168344;
+  text-shadow:
+    -1px -1px 0 #f2ffef,
+    1px -1px 0 #f2ffef,
+    -1px 1px 0 #f2ffef,
+    1px 1px 0 #f2ffef;
+  animation: muyu-burst-float 0.9s ease-out forwards;
+}
+
+@keyframes muyu-stick-hit {
+  0% {
+    transform: translate(-58%, -82%) rotate(-34deg);
+  }
+  45% {
+    transform: translate(-55%, -58%) rotate(3deg);
+  }
+  100% {
+    transform: translate(-58%, -82%) rotate(-34deg);
+  }
+}
+
+@keyframes muyu-burst-float {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -130%) scale(1.04);
+  }
+}
+
+@media (max-width: 960px) {
+  .muyu-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    align-items: start;
+  }
+
+  .muyu-copy {
+    max-width: 100%;
+    gap: 0.5rem;
+  }
+
+  .muyu-stage {
+    min-height: clamp(230px, 50vh, 360px);
+  }
+
+  .muyu-stick {
+    top: 32%;
   }
 }

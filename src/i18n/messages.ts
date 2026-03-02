@@ -181,6 +181,19 @@ type Messages = {
     details: WorldStageDetailText[];
     play: WorldPlayText;
   };
+  muyu: {
+    kicker: string;
+    title: string;
+    description: string;
+    tip: string;
+    totalLabel: string;
+    rewardHint: string;
+    rewardTitle: string;
+    rewardDescription: string;
+    rewardClose: string;
+    rewardEntry: string;
+    burstText: string;
+  };
   holiday: {
     label: string;
     nextPrefix: string;
@@ -452,6 +465,19 @@ export const messages: Record<Locale, Messages> = {
         }
       }
     },
+    muyu: {
+      kicker: 'Zen Arcade',
+      title: 'Cyber Wooden Fish',
+      description: 'Tap the wooden fish to stack merit and enter a calm flow state.',
+      tip: 'Mainstream loop: tap, feedback, accumulate, repeat.',
+      totalLabel: 'Total Merit',
+      rewardHint: 'Reward unlocks at 100 taps: +10 bonus',
+      rewardTitle: 'Muyu Reward +10',
+      rewardDescription: '100 taps reached. Scan the QR code to claim your +10 reward.',
+      rewardClose: 'Close',
+      rewardEntry: 'Reward',
+      burstText: 'Merit +1'
+    },
     holiday: {
       label: 'China 2026 Holiday Countdown',
       nextPrefix: 'Next',
@@ -712,6 +738,19 @@ export const messages: Record<Locale, Messages> = {
           straight_flush: '同花顺'
         }
       }
+    },
+    muyu: {
+      kicker: '禅意互动',
+      title: '赛博木鱼',
+      description: '敲击木鱼，累积功德，进入稳定节奏。',
+      tip: '主流玩法：敲击反馈、数字累积、循环上瘾。',
+      totalLabel: '累计功德',
+      rewardHint: '敲击 100 次可解锁 +10 奖励',
+      rewardTitle: '木鱼奖励 +10',
+      rewardDescription: '已达成 100 次敲击，扫描二维码领取 +10 奖励。',
+      rewardClose: '关闭',
+      rewardEntry: '奖励入口',
+      burstText: '功德 +1'
     },
     holiday: {
       label: '中国 2026 放假倒计时',
