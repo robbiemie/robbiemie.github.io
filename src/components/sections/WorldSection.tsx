@@ -8,10 +8,16 @@ import { useRootStore } from '../../stores/root-store-context';
 
 const worldThemeClasses = ['world-card-grass', 'world-card-desert', 'world-card-ice', 'world-card-sky'] as const;
 type WheelToastZone = 'negative' | 'positive' | 'neutral' | 'plus50' | 'minus50';
+type TexasToastOutcome = 'win' | 'lose' | 'tie' | 'fold';
 type WheelToastState = {
   id: number;
   gain: number;
   zone: WheelToastZone;
+};
+type TexasToastState = {
+  id: number;
+  gain: number;
+  outcome: TexasToastOutcome;
 };
 
 export const WorldSection = () => {
@@ -32,12 +38,15 @@ export const WorldSection = () => {
   const [isRewardModalOpen, setIsRewardModalOpen] = useState(false);
   const [isFortuneCongratsOpen, setIsFortuneCongratsOpen] = useState(false);
   const [wheelToast, setWheelToast] = useState<WheelToastState | null>(null);
+  const [texasToast, setTexasToast] = useState<TexasToastState | null>(null);
   const worldSectionRef = useRef<HTMLElement | null>(null);
   const stagePanelRef = useRef<HTMLElement | null>(null);
   const previousTotalScoreRef = useRef(0);
   const previousWheelHistoryIdRef = useRef<number | null>(null);
+  const previousTexasToastSignatureRef = useRef('');
   const previousFortuneSignatureRef = useRef('');
   const wheelToastTimeoutRef = useRef<number | null>(null);
+  const texasToastTimeoutRef = useRef<number | null>(null);
   const gameplay = useWorldStageGameplay();
 
   const activeStageDetail = useMemo(() => {
@@ -106,6 +115,13 @@ export const WorldSection = () => {
     if (zone === 'plus50') return message.world.play.wheelZonePlus50;
     if (zone === 'minus50') return message.world.play.wheelZoneMinus50;
     return message.world.play.wheelZoneNeutral;
+  };
+
+  const getTexasOutcomeText = (outcome: TexasToastOutcome): string => {
+    if (outcome === 'win') return message.world.play.texasOutcomeWin;
+    if (outcome === 'lose') return message.world.play.texasOutcomeLose;
+    if (outcome === 'tie') return message.world.play.texasOutcomeTie;
+    return message.world.play.texasOutcomeFold;
   };
 
   const pickFortuneText = (items: readonly string[], index: number): string => {
@@ -207,9 +223,39 @@ export const WorldSection = () => {
   }, [gameplay.wheelHistory]);
 
   useEffect(() => {
+    const outcome = gameplay.texasOutcome;
+    if (outcome !== 'win' && outcome !== 'lose' && outcome !== 'tie' && outcome !== 'fold') {
+      return;
+    }
+
+    const nextSignature = `${outcome}-${gameplay.texasHands}-${gameplay.texasLastGain}`;
+    if (previousTexasToastSignatureRef.current === nextSignature) {
+      return;
+    }
+    previousTexasToastSignatureRef.current = nextSignature;
+
+    setTexasToast({
+      id: Date.now(),
+      gain: gameplay.texasLastGain,
+      outcome
+    });
+
+    if (texasToastTimeoutRef.current) {
+      window.clearTimeout(texasToastTimeoutRef.current);
+    }
+    texasToastTimeoutRef.current = window.setTimeout(() => {
+      setTexasToast(null);
+      texasToastTimeoutRef.current = null;
+    }, 2800);
+  }, [gameplay.texasHands, gameplay.texasLastGain, gameplay.texasOutcome]);
+
+  useEffect(() => {
     return () => {
       if (wheelToastTimeoutRef.current) {
         window.clearTimeout(wheelToastTimeoutRef.current);
+      }
+      if (texasToastTimeoutRef.current) {
+        window.clearTimeout(texasToastTimeoutRef.current);
       }
     };
   }, []);
@@ -236,6 +282,20 @@ export const WorldSection = () => {
           <div className={`wheel-score-toast is-${wheelToast.zone}`} role="status" aria-live="polite">
             <strong>{wheelToast.gain > 0 ? `+${wheelToast.gain}` : wheelToast.gain}</strong>
             <span>{getWheelZoneText(wheelToast.zone)}</span>
+          </div>,
+          document.body
+        )
+      : null;
+
+  const texasToastPortal =
+    texasToast && typeof document !== 'undefined'
+      ? createPortal(
+          <div className={`texas-result-toast is-${texasToast.outcome}`} role="status" aria-live="polite">
+            <strong>{getTexasOutcomeText(texasToast.outcome)}</strong>
+            <span>
+              {message.world.play.texasToastTitle} · {message.world.play.lastGain}:{' '}
+              {texasToast.gain > 0 ? `+${texasToast.gain}` : texasToast.gain}
+            </span>
           </div>,
           document.body
         )
@@ -395,9 +455,11 @@ export const WorldSection = () => {
 
               <div className="texas-action-layout">
                 <div className="world-machine-actions texas-action-group texas-action-group-play">
-                  <button type="button" className="world-action-button action-deal" onClick={() => runFocusedAction(gameplay.playTexas)}>
-                    {message.world.play.texasAction}
-                  </button>
+                  {!gameplay.texasCanReveal ? (
+                    <button type="button" className="world-action-button action-deal" onClick={() => runFocusedAction(gameplay.playTexas)}>
+                      {message.world.play.texasAction}
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     className="world-action-button world-action-button-alt action-reveal"
@@ -423,6 +485,15 @@ export const WorldSection = () => {
                   >
                     {message.world.play.ruleAction}
                   </button>
+                  {gameplay.texasCanReveal ? (
+                    <button
+                      type="button"
+                      className="world-action-button world-action-button-alt action-replay"
+                      onClick={() => runFocusedAction(gameplay.playTexas)}
+                    >
+                      {message.world.play.texasReplayAction}
+                    </button>
+                  ) : null}
                 </div>
               </div>
 
@@ -773,6 +844,7 @@ export const WorldSection = () => {
       ) : null}
       </section>
       {wheelToastPortal}
+      {texasToastPortal}
     </>
   );
 };

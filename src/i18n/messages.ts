@@ -18,6 +18,8 @@ type WorldPlayText = {
   texasAction: string;
   texasRevealAction: string;
   texasFoldAction: string;
+  texasReplayAction: string;
+  texasToastTitle: string;
   wheelAction: string;
   fortuneAction: string;
   jackpotAction: string;
@@ -284,6 +286,8 @@ export const messages: Record<Locale, Messages> = {
         texasAction: 'Deal Cards',
         texasRevealAction: 'Reveal Showdown',
         texasFoldAction: 'Fold',
+        texasReplayAction: 'Quick Replay',
+        texasToastTitle: 'Texas Result',
         wheelAction: 'Spin Wheel',
         fortuneAction: 'Generate Profile',
         jackpotAction: 'Restart Board',
@@ -572,6 +576,8 @@ export const messages: Record<Locale, Messages> = {
         texasAction: '发牌开局',
         texasRevealAction: '开牌比大小',
         texasFoldAction: '弃牌',
+        texasReplayAction: '再来一局',
+        texasToastTitle: '德州结算',
         wheelAction: '转动转盘',
         fortuneAction: '生成人格画像',
         jackpotAction: '重开棋盘',

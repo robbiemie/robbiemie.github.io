@@ -802,14 +802,27 @@ export const useWorldStageGameplay = (): GameplayState & GameplayActions => {
   };
 
   const foldTexas = () => {
-    if (!texasCanReveal) {
+    if (!texasCanReveal || !texasRoundRef.current) {
       return;
     }
+
+    const { board, opponents } = texasRoundRef.current;
+    const opponentBestResults = opponents.map((opponent) => buildBestHandFromSeven([...opponent, ...board]));
+    const opponentScores = opponentBestResults.map((result) => result.score);
+    const bestOpponentScore = opponentScores.reduce((best, current) => (compareHands(current, best) > 0 ? current : best));
+    const winningOpponentIndices = opponentScores
+      .map((score, index) => ({ score, index }))
+      .filter((entry) => compareHands(entry.score, bestOpponentScore) === 0)
+      .map((entry) => entry.index);
+
+    setTexasOpponents(opponents.map((cards) => cards.map(formatCard)));
     setTexasOutcome('fold');
     setTexasHighlightPlayerHandIndices([]);
-    setTexasHighlightOpponentHandIndices([[], []]);
-    setTexasOpponentHandCodes([null, null]);
-    setTexasWinningOpponentIndices([]);
+    setTexasHighlightOpponentHandIndices(
+      opponentBestResults.map((result) => (result.score.handCode === 'high_card' ? [] : result.indices.filter((index) => index < 2)))
+    );
+    setTexasOpponentHandCodes(opponentBestResults.map((result) => result.score.handCode));
+    setTexasWinningOpponentIndices(winningOpponentIndices);
     setTexasLastGain(0);
     setTexasCanReveal(false);
   };
