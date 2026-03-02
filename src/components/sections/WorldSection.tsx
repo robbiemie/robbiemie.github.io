@@ -122,7 +122,11 @@ export const WorldSection = () => {
   };
 
   useEffect(() => {
-    // Sync viewport and panel scroll on both enter/exit focus mode to avoid stale blank area.
+    if (!isGameplayFocused) {
+      return;
+    }
+
+    // Sync viewport and panel scroll when entering focus mode to avoid stale blank area.
     const rafId = window.requestAnimationFrame(() => {
       const worldSectionElement = worldSectionRef.current;
       const stagePanelElement = stagePanelRef.current;

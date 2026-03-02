@@ -3,6 +3,13 @@ import { useEffect, useRef } from 'react';
 const SCREEN_SELECTOR = '.screen-section';
 const SCROLL_LOCK_DURATION = 760;
 const SNAP_SETTLE_DURATION = 520;
+const DESKTOP_THRESHOLD_DOWN = 0.38;
+const DESKTOP_THRESHOLD_UP = 0.62;
+const MOBILE_THRESHOLD_DOWN = 0.46;
+const MOBILE_THRESHOLD_UP = 0.54;
+const SCROLL_IDLE_SNAP_DELAY = 120;
+const DIRECTION_EPSILON = 2;
+type ScrollDirection = 'up' | 'down' | 'idle';
 
 const clampIndex = (value: number, max: number): number => {
   return Math.min(Math.max(value, 0), max);
@@ -24,15 +31,47 @@ const getNearestSectionIndex = (sections: HTMLElement[]): number => {
   return bestIndex;
 };
 
+const getSnapTargetIndexByThreshold = (
+  sections: HTMLElement[],
+  thresholdRatio: number
+): number => {
+  const currentScrollTop = window.scrollY;
+  if (sections.length <= 1) {
+    return 0;
+  }
+
+  for (let index = 0; index < sections.length - 1; index += 1) {
+    const currentTop = sections[index].offsetTop;
+    const nextTop = sections[index + 1].offsetTop;
+    if (currentScrollTop < currentTop || currentScrollTop > nextTop) {
+      continue;
+    }
+
+    const range = Math.max(nextTop - currentTop, 1);
+    const progress = (currentScrollTop - currentTop) / range;
+    return progress >= thresholdRatio ? index + 1 : index;
+  }
+
+  if (currentScrollTop >= sections[sections.length - 1].offsetTop) {
+    return sections.length - 1;
+  }
+  return 0;
+};
+
 export const useSectionSnapPause = (): void => {
   const isLockedRef = useRef(false);
+  const isAutoSnappingRef = useRef(false);
   const unlockTimerRef = useRef<number | null>(null);
   const settleTimerRef = useRef<number | null>(null);
+  const autoSnapReleaseTimerRef = useRef<number | null>(null);
+  const scrollSnapTimerRef = useRef<number | null>(null);
+  const lastScrollTopRef = useRef(0);
+  const lastDirectionRef = useRef<ScrollDirection>('idle');
 
   useEffect(() => {
     const shouldReduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const isMobileViewport = window.matchMedia('(max-width: 960px), (pointer: coarse)').matches;
-    if (shouldReduceMotion || isMobileViewport) {
+    if (shouldReduceMotion) {
       return;
     }
 
@@ -40,6 +79,7 @@ export const useSectionSnapPause = (): void => {
     if (sections.length === 0) {
       return;
     }
+    lastScrollTopRef.current = window.scrollY;
 
     const maxIndex = sections.length - 1;
 
@@ -56,6 +96,7 @@ export const useSectionSnapPause = (): void => {
     const scrollToIndex = (nextIndex: number) => {
       const safeIndex = clampIndex(nextIndex, maxIndex);
       const targetTop = sections[safeIndex].offsetTop;
+      isAutoSnappingRef.current = true;
       window.scrollTo({
         top: targetTop,
         behavior: 'smooth',
@@ -69,9 +110,48 @@ export const useSectionSnapPause = (): void => {
           top: targetTop,
           behavior: 'auto'
         });
+        lastScrollTopRef.current = targetTop;
+        lastDirectionRef.current = 'idle';
       }, SNAP_SETTLE_DURATION);
 
+      if (autoSnapReleaseTimerRef.current) {
+        window.clearTimeout(autoSnapReleaseTimerRef.current);
+      }
+      autoSnapReleaseTimerRef.current = window.setTimeout(() => {
+        isAutoSnappingRef.current = false;
+        autoSnapReleaseTimerRef.current = null;
+      }, SCROLL_LOCK_DURATION + SNAP_SETTLE_DURATION + 60);
+
       lockScroll();
+    };
+
+    const resolveThreshold = (direction: ScrollDirection): number => {
+      if (isMobileViewport) {
+        if (direction === 'down') return MOBILE_THRESHOLD_DOWN;
+        if (direction === 'up') return MOBILE_THRESHOLD_UP;
+        return 0.5;
+      }
+      if (direction === 'down') return DESKTOP_THRESHOLD_DOWN;
+      if (direction === 'up') return DESKTOP_THRESHOLD_UP;
+      return 0.5;
+    };
+
+    const snapByThreshold = () => {
+      if (isLockedRef.current) {
+        return;
+      }
+      const threshold = resolveThreshold(lastDirectionRef.current);
+      const targetIndex = getSnapTargetIndexByThreshold(sections, threshold);
+      const currentIndex = getNearestSectionIndex(sections);
+      if (targetIndex !== currentIndex) {
+        scrollToIndex(targetIndex);
+        return;
+      }
+
+      const currentTop = sections[currentIndex].offsetTop;
+      if (Math.abs(window.scrollY - currentTop) > 2) {
+        scrollToIndex(currentIndex);
+      }
     };
 
     const handleWheel = (event: WheelEvent) => {
@@ -114,17 +194,60 @@ export const useSectionSnapPause = (): void => {
       }
     };
 
-    window.addEventListener('wheel', handleWheel, { passive: false });
-    window.addEventListener('keydown', handleKeydown);
+    const handleScroll = () => {
+      if (isAutoSnappingRef.current) {
+        return;
+      }
+
+      const currentScrollTop = window.scrollY;
+      const delta = currentScrollTop - lastScrollTopRef.current;
+      if (delta > DIRECTION_EPSILON) {
+        lastDirectionRef.current = 'down';
+      } else if (delta < -DIRECTION_EPSILON) {
+        lastDirectionRef.current = 'up';
+      } else {
+        lastDirectionRef.current = 'idle';
+      }
+      lastScrollTopRef.current = currentScrollTop;
+
+      if (isLockedRef.current) {
+        return;
+      }
+      if (scrollSnapTimerRef.current) {
+        window.clearTimeout(scrollSnapTimerRef.current);
+      }
+      scrollSnapTimerRef.current = window.setTimeout(() => {
+        scrollSnapTimerRef.current = null;
+        if (isAutoSnappingRef.current) {
+          return;
+        }
+        snapByThreshold();
+      }, SCROLL_IDLE_SNAP_DELAY);
+    };
+
+    if (!isMobileViewport) {
+      window.addEventListener('wheel', handleWheel, { passive: false });
+      window.addEventListener('keydown', handleKeydown);
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
-      window.removeEventListener('wheel', handleWheel);
-      window.removeEventListener('keydown', handleKeydown);
+      if (!isMobileViewport) {
+        window.removeEventListener('wheel', handleWheel);
+        window.removeEventListener('keydown', handleKeydown);
+      }
+      window.removeEventListener('scroll', handleScroll);
       if (unlockTimerRef.current) {
         window.clearTimeout(unlockTimerRef.current);
       }
       if (settleTimerRef.current) {
         window.clearTimeout(settleTimerRef.current);
+      }
+      if (scrollSnapTimerRef.current) {
+        window.clearTimeout(scrollSnapTimerRef.current);
+      }
+      if (autoSnapReleaseTimerRef.current) {
+        window.clearTimeout(autoSnapReleaseTimerRef.current);
       }
     };
   }, []);

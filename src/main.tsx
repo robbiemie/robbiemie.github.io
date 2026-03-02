@@ -11,6 +11,16 @@ if (redirectPath) {
   window.history.replaceState({}, '', redirectPath);
 }
 
+if (window.history.scrollRestoration) {
+  window.history.scrollRestoration = 'manual';
+}
+
+if (window.location.hash) {
+  window.history.replaceState({}, '', `${window.location.pathname}${window.location.search}`);
+}
+
+window.scrollTo({ top: 0, behavior: 'auto' });
+
 const rootStore = createRootStore();
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(

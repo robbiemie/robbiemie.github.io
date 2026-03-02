@@ -14,6 +14,8 @@ export const usePageState = () => {
   useSectionSnapPause();
 
   useEffect(() => {
+    // Ensure first screen on every fresh load even if browser keeps old scroll.
+    window.scrollTo({ top: 0, behavior: 'auto' });
     pageStore.setReadyState(true);
   }, [pageStore]);
 
