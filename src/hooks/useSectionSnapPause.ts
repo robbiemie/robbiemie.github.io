@@ -31,6 +31,19 @@ const getNearestSectionIndex = (sections: HTMLElement[]): number => {
   return bestIndex;
 };
 
+const isEditableTarget = (target: EventTarget | null): boolean => {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  if (target.isContentEditable) {
+    return true;
+  }
+
+  const tagName = target.tagName.toLowerCase();
+  return tagName === 'input' || tagName === 'textarea' || tagName === 'select' || tagName === 'button';
+};
+
 const getSnapTargetIndexByThreshold = (
   sections: HTMLElement[],
   thresholdRatio: number
@@ -174,6 +187,10 @@ export const useSectionSnapPause = (): void => {
     };
 
     const handleKeydown = (event: KeyboardEvent) => {
+      if (isEditableTarget(event.target)) {
+        return;
+      }
+
       const downKeys = ['ArrowDown', 'PageDown', ' '];
       const upKeys = ['ArrowUp', 'PageUp'];
       if (!downKeys.includes(event.key) && !upKeys.includes(event.key)) {

@@ -132,6 +132,7 @@ export const HolidayCountdown = () => {
 
     setCustomCountdown(nextConfig);
     window.localStorage.setItem(CUSTOM_COUNTDOWN_STORAGE_KEY, JSON.stringify(nextConfig));
+    setIsCustomExpanded(false);
   };
 
   const handleClearCustomCountdown = () => {
