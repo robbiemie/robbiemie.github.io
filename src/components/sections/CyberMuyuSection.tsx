@@ -6,18 +6,27 @@ type MeritBurst = {
   id: number;
   x: number;
   y: number;
+  text: string;
+  combo: boolean;
 };
 
 export const CyberMuyuSection = () => {
   const { message } = useI18n();
   const rewardImageSrc = `${import.meta.env.BASE_URL}img/qrcode.jpg`;
   const rewardKnockThreshold = 100;
+  const comboWindowMs = 850;
+  const comboResetDelayMs = 1250;
   const [meritTotal, setMeritTotal] = useState(0);
   const [isKnocking, setIsKnocking] = useState(false);
+  const [comboCount, setComboCount] = useState(0);
+  const [isComboPulse, setIsComboPulse] = useState(false);
   const [bursts, setBursts] = useState<readonly MeritBurst[]>([]);
   const [isRewardUnlocked, setIsRewardUnlocked] = useState(false);
   const [isRewardModalOpen, setIsRewardModalOpen] = useState(false);
   const burstIdRef = useRef(0);
+  const lastKnockAtRef = useRef(0);
+  const comboCountRef = useRef(0);
+  const comboResetTimerRef = useRef<number | null>(null);
   const timerRefs = useRef<number[]>([]);
 
   useEffect(() => {
@@ -60,17 +69,67 @@ export const CyberMuyuSection = () => {
     timerRefs.current = [...timerRefs.current, timerId];
   };
 
+  const queueComboReset = () => {
+    if (comboResetTimerRef.current) {
+      window.clearTimeout(comboResetTimerRef.current);
+      timerRefs.current = timerRefs.current.filter((timerId) => timerId !== comboResetTimerRef.current);
+    }
+
+    const timerId = window.setTimeout(() => {
+      comboCountRef.current = 0;
+      setComboCount(0);
+      comboResetTimerRef.current = null;
+      timerRefs.current = timerRefs.current.filter((item) => item !== timerId);
+    }, comboResetDelayMs);
+
+    comboResetTimerRef.current = timerId;
+    timerRefs.current = [...timerRefs.current, timerId];
+  };
+
   const handleKnock = (event: MouseEvent<HTMLButtonElement>) => {
+    const now = Date.now();
+    const isComboHit = now - lastKnockAtRef.current <= comboWindowMs;
+    const nextComboCount = isComboHit ? comboCountRef.current + 1 : 1;
+    comboCountRef.current = nextComboCount;
+    setComboCount(nextComboCount);
+    setIsComboPulse(true);
+    queueTimeout(() => {
+      setIsComboPulse(false);
+    }, 220);
+    queueComboReset();
+    lastKnockAtRef.current = now;
+
     const rect = event.currentTarget.getBoundingClientRect();
     const burstId = burstIdRef.current + 1;
-    burstIdRef.current = burstId;
+    burstIdRef.current = burstId + 1;
 
     const burstX = event.clientX - rect.left;
     const burstY = event.clientY - rect.top;
 
     setMeritTotal((value) => value + 1);
     setIsKnocking(true);
-    setBursts((items) => [...items, { id: burstId, x: burstX, y: burstY }].slice(-12));
+    setBursts((items) => {
+      const baseBurst: MeritBurst = {
+        id: burstId,
+        x: burstX,
+        y: burstY,
+        text: message.muyu.burstText,
+        combo: false
+      };
+      const nextBursts: MeritBurst[] = [baseBurst];
+
+      if (nextComboCount >= 2) {
+        nextBursts.push({
+          id: burstId + 1,
+          x: rect.width * 0.5,
+          y: rect.height * 0.28,
+          text: `${message.muyu.comboBurstText} x${nextComboCount}`,
+          combo: true
+        });
+      }
+
+      return [...items, ...nextBursts].slice(-16);
+    });
 
     queueTimeout(() => {
       setIsKnocking(false);
@@ -111,9 +170,13 @@ export const CyberMuyuSection = () => {
             <span className="cyber-muyu-core" aria-hidden="true" />
           </button>
 
+          <span className={`muyu-combo ${comboCount >= 2 ? 'is-visible' : ''} ${isComboPulse ? 'is-pulse' : ''}`}>
+            {message.muyu.comboLabel} x{comboCount}
+          </span>
+
           {bursts.map((burst) => (
-            <span key={burst.id} className="muyu-burst" style={{ left: burst.x, top: burst.y }}>
-              {message.muyu.burstText}
+            <span key={burst.id} className={`muyu-burst ${burst.combo ? 'is-combo' : ''}`} style={{ left: burst.x, top: burst.y }}>
+              {burst.text}
             </span>
           ))}
         </div>

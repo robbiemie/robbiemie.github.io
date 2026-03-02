@@ -192,6 +192,8 @@ type Messages = {
     rewardDescription: string;
     rewardClose: string;
     rewardEntry: string;
+    comboLabel: string;
+    comboBurstText: string;
     burstText: string;
   };
   holiday: {
@@ -476,6 +478,8 @@ export const messages: Record<Locale, Messages> = {
       rewardDescription: '100 taps reached. Scan the QR code to claim your +10 reward.',
       rewardClose: 'Close',
       rewardEntry: 'Reward',
+      comboLabel: 'Combo',
+      comboBurstText: 'Zen Combo',
       burstText: 'Merit +1'
     },
     holiday: {
@@ -750,6 +754,8 @@ export const messages: Record<Locale, Messages> = {
       rewardDescription: '已达成 100 次敲击，扫描二维码领取 +10 奖励。',
       rewardClose: '关闭',
       rewardEntry: '奖励入口',
+      comboLabel: '连击',
+      comboBurstText: '禅意连击',
       burstText: '功德 +1'
     },
     holiday: {

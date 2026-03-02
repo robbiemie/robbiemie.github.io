@@ -3548,6 +3548,45 @@ body {
   animation: muyu-burst-float 0.9s ease-out forwards;
 }
 
+.muyu-burst.is-combo {
+  color: #ef7b24;
+  font-size: clamp(1rem, 1.9vw, 1.36rem);
+  text-shadow:
+    -1px -1px 0 #fff4df,
+    1px -1px 0 #fff4df,
+    -1px 1px 0 #fff4df,
+    1px 1px 0 #fff4df;
+}
+
+.muyu-combo {
+  position: absolute;
+  left: 50%;
+  top: 10%;
+  z-index: 5;
+  transform: translateX(-50%) scale(0.86);
+  opacity: 0;
+  pointer-events: none;
+  padding: 0.26rem 0.62rem;
+  border-radius: 999px;
+  border: 3px solid #195f8f;
+  background: linear-gradient(180deg, #fff9de 0%, #ffe6a9 100%);
+  font-family: 'Baloo 2', 'Nunito', sans-serif;
+  font-size: clamp(0.78rem, 1.4vw, 1rem);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #1a5f8c;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+.muyu-combo.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+.muyu-combo.is-pulse {
+  animation: muyu-combo-pulse 0.22s ease;
+}
+
 @keyframes muyu-stick-hit {
   0% {
     transform: translate(-58%, -82%) rotate(-34deg);
@@ -3571,6 +3610,18 @@ body {
   100% {
     opacity: 0;
     transform: translate(-50%, -130%) scale(1.04);
+  }
+}
+
+@keyframes muyu-combo-pulse {
+  0% {
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.08);
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
   }
 }
 
