@@ -13,6 +13,7 @@ export const HeroSection = observer(() => {
     gameStore: { totalScore }
   } = useRootStore();
   const isResourceUnlocked = totalScore > 5;
+  const toolsHref = `${import.meta.env.BASE_URL}tools`;
 
   return (
     <section className="hero-section screen-section" id="home">
@@ -29,6 +30,10 @@ export const HeroSection = observer(() => {
           <a className="hero-link" href="#worlds">
             <HeroLinkIcon name="start" />
             {message.hero.startButton}
+          </a>
+          <a className="hero-link hero-link-secondary" href={toolsHref}>
+            <HeroLinkIcon name="knowledge" />
+            {message.hero.toolsButton}
           </a>
           {isResourceUnlocked ? (
             <>

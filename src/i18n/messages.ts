@@ -169,6 +169,7 @@ type Messages = {
     titleLines: [string, string, string];
     description: string;
     startButton: string;
+    toolsButton: string;
     knowledgeButton: string;
     blogButton: string;
     githubButton: string;
@@ -216,6 +217,42 @@ type Messages = {
     customExpired: string;
     items: HolidayText[];
   };
+  tools: {
+    kicker: string;
+    title: string;
+    description: string;
+    backHome: string;
+    subRouteLabel: string;
+    overviewNav: string;
+    htmlNav: string;
+    jsonNav: string;
+    urlNav: string;
+    formatterTitle: string;
+    formatterDescription: string;
+    validatorTitle: string;
+    validatorDescription: string;
+    jsonTitle: string;
+    jsonDescription: string;
+    urlTitle: string;
+    urlDescription: string;
+    sourceLabel: string;
+    outputLabel: string;
+    sourcePlaceholder: string;
+    jsonPlaceholder: string;
+    urlPlaceholder: string;
+    formatAction: string;
+    validateAction: string;
+    jsonFormatAction: string;
+    jsonValidateAction: string;
+    urlEncodeAction: string;
+    urlDecodeAction: string;
+    clearAction: string;
+    copyAction: string;
+    validatePass: string;
+    validateFailPrefix: string;
+    jsonValidatePass: string;
+    jsonValidateFailPrefix: string;
+  };
 };
 
 export const messages: Record<Locale, Messages> = {
@@ -225,6 +262,7 @@ export const messages: Record<Locale, Messages> = {
       titleLines: ['Jump Into', 'Your Next', 'Bright World'],
       description: 'Learn with consistency. Keep moving forward.',
       startButton: 'Start Adventure',
+      toolsButton: 'Frontend Tools',
       knowledgeButton: 'Knowledge Base',
       blogButton: 'CSDN Blog',
       githubButton: 'GitHub',
@@ -523,6 +561,42 @@ export const messages: Record<Locale, Messages> = {
         { name: 'Mid-Autumn Festival', startIso: '2026-09-25T00:00:00+08:00', endIso: '2026-09-27T23:59:59+08:00' },
         { name: 'National Day', startIso: '2026-10-01T00:00:00+08:00', endIso: '2026-10-07T23:59:59+08:00' }
       ]
+    },
+    tools: {
+      kicker: 'Toolbox',
+      title: 'Frontend Utilities',
+      description: 'A lightweight toolbox for daily markup cleanup and quick checks.',
+      backHome: 'Back Home',
+      subRouteLabel: 'Tool Navigation',
+      overviewNav: 'Overview',
+      htmlNav: 'HTML',
+      jsonNav: 'JSON',
+      urlNav: 'URL',
+      formatterTitle: 'HTML Formatter',
+      formatterDescription: 'Normalize indentation and structure for readable HTML.',
+      validatorTitle: 'HTML Validator',
+      validatorDescription: 'Run a quick structural check for tag pairing issues.',
+      jsonTitle: 'JSON Formatter',
+      jsonDescription: 'Format and validate JSON in one place.',
+      urlTitle: 'URL Encoder / Decoder',
+      urlDescription: 'Quick encode or decode for query and path text.',
+      sourceLabel: 'Source',
+      outputLabel: 'Output',
+      sourcePlaceholder: '<div><h1>Hello</h1><p>world</p></div>',
+      jsonPlaceholder: '{"name":"Robbie","skills":["React","TypeScript"]}',
+      urlPlaceholder: 'name=Robbie Yang&stack=frontend tools',
+      formatAction: 'Format HTML',
+      validateAction: 'Validate HTML',
+      jsonFormatAction: 'Format JSON',
+      jsonValidateAction: 'Validate JSON',
+      urlEncodeAction: 'Encode URL',
+      urlDecodeAction: 'Decode URL',
+      clearAction: 'Clear',
+      copyAction: 'Copy',
+      validatePass: 'Structure check passed.',
+      validateFailPrefix: 'Structure issue:',
+      jsonValidatePass: 'JSON is valid.',
+      jsonValidateFailPrefix: 'JSON issue:'
     }
   },
   zh: {
@@ -531,6 +605,7 @@ export const messages: Record<Locale, Messages> = {
       titleLines: ['走向你的', '下一个', '广阔世界'],
       description: '持续学习，稳步向前。',
       startButton: '开始探索',
+      toolsButton: '前端工具箱',
       knowledgeButton: '前端知识库',
       blogButton: '技术博客',
       githubButton: 'GitHub',
@@ -813,6 +888,42 @@ export const messages: Record<Locale, Messages> = {
         { name: '中秋节', startIso: '2026-09-25T00:00:00+08:00', endIso: '2026-09-27T23:59:59+08:00' },
         { name: '国庆节', startIso: '2026-10-01T00:00:00+08:00', endIso: '2026-10-07T23:59:59+08:00' }
       ]
+    },
+    tools: {
+      kicker: '工具集合',
+      title: '前端工具合集',
+      description: '先搭一个轻量可用的工具页，后续可持续扩展。',
+      backHome: '返回首页',
+      subRouteLabel: '工具导航',
+      overviewNav: '总览',
+      htmlNav: 'HTML',
+      jsonNav: 'JSON',
+      urlNav: 'URL',
+      formatterTitle: 'HTML 格式化',
+      formatterDescription: '统一缩进和结构，便于阅读与提交。',
+      validatorTitle: 'HTML 结构校验',
+      validatorDescription: '快速检查标签闭合与嵌套问题。',
+      jsonTitle: 'JSON 格式化',
+      jsonDescription: '在同一处完成 JSON 格式化与校验。',
+      urlTitle: 'URL 编解码',
+      urlDescription: '快速处理查询参数与路径文本。',
+      sourceLabel: '输入',
+      outputLabel: '输出',
+      sourcePlaceholder: '<div><h1>Hello</h1><p>world</p></div>',
+      jsonPlaceholder: '{"name":"Robbie","skills":["React","TypeScript"]}',
+      urlPlaceholder: 'name=Robbie Yang&stack=frontend tools',
+      formatAction: '格式化 HTML',
+      validateAction: '校验 HTML',
+      jsonFormatAction: '格式化 JSON',
+      jsonValidateAction: '校验 JSON',
+      urlEncodeAction: 'URL 编码',
+      urlDecodeAction: 'URL 解码',
+      clearAction: '清空',
+      copyAction: '复制',
+      validatePass: '结构校验通过。',
+      validateFailPrefix: '结构异常：',
+      jsonValidatePass: 'JSON 校验通过。',
+      jsonValidateFailPrefix: 'JSON 异常：'
     }
   }
 };
