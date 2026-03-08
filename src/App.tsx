@@ -25,7 +25,7 @@ const getRoute = (): AppRoute => {
 
   if (strippedPath.startsWith('/tools/')) {
     const segment = strippedPath.replace('/tools/', '').split('/')[0];
-    if (segment === 'html' || segment === 'json' || segment === 'url') {
+    if (segment === 'html' || segment === 'json' || segment === 'url' || segment === 'regex') {
       return { shell: 'tools', toolsRoute: segment };
     }
     return { shell: 'tools', toolsRoute: 'overview' };

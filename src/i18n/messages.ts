@@ -227,6 +227,7 @@ type Messages = {
     htmlNav: string;
     jsonNav: string;
     urlNav: string;
+    regexNav: string;
     formatterTitle: string;
     formatterDescription: string;
     validatorTitle: string;
@@ -235,13 +236,24 @@ type Messages = {
     jsonDescription: string;
     urlTitle: string;
     urlDescription: string;
+    regexTitle: string;
+    regexDescription: string;
     sourceLabel: string;
     outputLabel: string;
+    regexPatternLabel: string;
+    regexFlagsLabel: string;
+    regexResultTitle: string;
     sourcePlaceholder: string;
     jsonPlaceholder: string;
     urlPlaceholder: string;
+    regexPatternPlaceholder: string;
+    regexTextPlaceholder: string;
     formatAction: string;
     validateAction: string;
+    previewAction: string;
+    previewTitle: string;
+    previewEmpty: string;
+    regexRunAction: string;
     jsonFormatAction: string;
     jsonValidateAction: string;
     urlEncodeAction: string;
@@ -252,6 +264,11 @@ type Messages = {
     validateFailPrefix: string;
     jsonValidatePass: string;
     jsonValidateFailPrefix: string;
+    regexInvalidPrefix: string;
+    regexNoMatch: string;
+    regexMatchCount: string;
+    regexMatchItem: string;
+    regexGroupsLabel: string;
   };
 };
 
@@ -572,6 +589,7 @@ export const messages: Record<Locale, Messages> = {
       htmlNav: 'HTML',
       jsonNav: 'JSON',
       urlNav: 'URL',
+      regexNav: 'Regex',
       formatterTitle: 'HTML Formatter',
       formatterDescription: 'Normalize indentation and structure for readable HTML.',
       validatorTitle: 'HTML Validator',
@@ -580,13 +598,24 @@ export const messages: Record<Locale, Messages> = {
       jsonDescription: 'Format and validate JSON in one place.',
       urlTitle: 'URL Encoder / Decoder',
       urlDescription: 'Quick encode or decode for query and path text.',
+      regexTitle: 'Regex Visualizer',
+      regexDescription: 'Test regex and visualize matched ranges.',
       sourceLabel: 'Source',
       outputLabel: 'Output',
+      regexPatternLabel: 'Pattern',
+      regexFlagsLabel: 'Flags',
+      regexResultTitle: 'Visual Result',
       sourcePlaceholder: '<div><h1>Hello</h1><p>world</p></div>',
       jsonPlaceholder: '{"name":"Robbie","skills":["React","TypeScript"]}',
       urlPlaceholder: 'name=Robbie Yang&stack=frontend tools',
+      regexPatternPlaceholder: 'e.g. \\b[a-zA-Z]{4}\\b',
+      regexTextPlaceholder: 'Input text for regex matching',
       formatAction: 'Format HTML',
       validateAction: 'Validate HTML',
+      previewAction: 'Preview',
+      previewTitle: 'Preview',
+      previewEmpty: 'No HTML to preview.',
+      regexRunAction: 'Run Regex',
       jsonFormatAction: 'Format JSON',
       jsonValidateAction: 'Validate JSON',
       urlEncodeAction: 'Encode URL',
@@ -596,7 +625,12 @@ export const messages: Record<Locale, Messages> = {
       validatePass: 'Structure check passed.',
       validateFailPrefix: 'Structure issue:',
       jsonValidatePass: 'JSON is valid.',
-      jsonValidateFailPrefix: 'JSON issue:'
+      jsonValidateFailPrefix: 'JSON issue:',
+      regexInvalidPrefix: 'Regex issue:',
+      regexNoMatch: 'No match.',
+      regexMatchCount: 'Match count',
+      regexMatchItem: 'Match',
+      regexGroupsLabel: 'Groups'
     }
   },
   zh: {
@@ -899,6 +933,7 @@ export const messages: Record<Locale, Messages> = {
       htmlNav: 'HTML',
       jsonNav: 'JSON',
       urlNav: 'URL',
+      regexNav: '正则',
       formatterTitle: 'HTML 格式化',
       formatterDescription: '统一缩进和结构，便于阅读与提交。',
       validatorTitle: 'HTML 结构校验',
@@ -907,13 +942,24 @@ export const messages: Record<Locale, Messages> = {
       jsonDescription: '在同一处完成 JSON 格式化与校验。',
       urlTitle: 'URL 编解码',
       urlDescription: '快速处理查询参数与路径文本。',
+      regexTitle: '正则可视化',
+      regexDescription: '输入正则与文本，直观查看命中区间。',
       sourceLabel: '输入',
       outputLabel: '输出',
+      regexPatternLabel: '表达式',
+      regexFlagsLabel: '标记',
+      regexResultTitle: '可视化结果',
       sourcePlaceholder: '<div><h1>Hello</h1><p>world</p></div>',
       jsonPlaceholder: '{"name":"Robbie","skills":["React","TypeScript"]}',
       urlPlaceholder: 'name=Robbie Yang&stack=frontend tools',
+      regexPatternPlaceholder: '例如：\\b[a-zA-Z]{4}\\b',
+      regexTextPlaceholder: '输入待匹配文本',
       formatAction: '格式化 HTML',
       validateAction: '校验 HTML',
+      previewAction: '预览',
+      previewTitle: '预览',
+      previewEmpty: '暂无可预览内容。',
+      regexRunAction: '执行匹配',
       jsonFormatAction: '格式化 JSON',
       jsonValidateAction: '校验 JSON',
       urlEncodeAction: 'URL 编码',
@@ -923,7 +969,12 @@ export const messages: Record<Locale, Messages> = {
       validatePass: '结构校验通过。',
       validateFailPrefix: '结构异常：',
       jsonValidatePass: 'JSON 校验通过。',
-      jsonValidateFailPrefix: 'JSON 异常：'
+      jsonValidateFailPrefix: 'JSON 异常：',
+      regexInvalidPrefix: '正则异常：',
+      regexNoMatch: '未命中。',
+      regexMatchCount: '命中数量',
+      regexMatchItem: '命中',
+      regexGroupsLabel: '分组'
     }
   }
 };

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { useI18n } from '../../i18n/locale-context';
 
 const VOID_TAGS = new Set([
@@ -18,13 +18,19 @@ const VOID_TAGS = new Set([
   'wbr'
 ]);
 
-export type ToolsRouteKey = 'overview' | 'html' | 'json' | 'url';
+type RegexMatchRecord = {
+  index: number;
+  value: string;
+  groups: string[];
+};
+
+export type ToolsRouteKey = 'overview' | 'html' | 'json' | 'url' | 'regex';
 
 type ToolsPageProps = {
   activeTool: ToolsRouteKey;
 };
 
-const getRouteHref = (segment: '' | 'tools' | 'tools/html' | 'tools/json' | 'tools/url'): string => {
+const getRouteHref = (segment: '' | 'tools' | 'tools/html' | 'tools/json' | 'tools/url' | 'tools/regex'): string => {
   const basePath = import.meta.env.BASE_URL ?? '/';
   const normalizedBase = basePath.endsWith('/') ? basePath : `${basePath}/`;
   return segment ? `${normalizedBase}${segment}` : normalizedBase;
@@ -124,9 +130,11 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
   const htmlHref = useMemo(() => getRouteHref('tools/html'), []);
   const jsonHref = useMemo(() => getRouteHref('tools/json'), []);
   const urlHref = useMemo(() => getRouteHref('tools/url'), []);
+  const regexHref = useMemo(() => getRouteHref('tools/regex'), []);
 
   const [htmlSource, setHtmlSource] = useState('');
   const [htmlOutput, setHtmlOutput] = useState('');
+  const [htmlPreviewDoc, setHtmlPreviewDoc] = useState('');
   const [htmlValidationMessage, setHtmlValidationMessage] = useState('');
   const [htmlValidationPassed, setHtmlValidationPassed] = useState<boolean | null>(null);
 
@@ -137,6 +145,11 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
 
   const [urlSource, setUrlSource] = useState('');
   const [urlOutput, setUrlOutput] = useState('');
+  const [regexPattern, setRegexPattern] = useState('');
+  const [regexFlags, setRegexFlags] = useState('g');
+  const [regexSource, setRegexSource] = useState('');
+  const [regexMatches, setRegexMatches] = useState<RegexMatchRecord[]>([]);
+  const [regexError, setRegexError] = useState('');
 
   const onFormatHtml = () => {
     setHtmlOutput(formatHtml(htmlSource));
@@ -151,8 +164,14 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
   const onClearHtml = () => {
     setHtmlSource('');
     setHtmlOutput('');
+    setHtmlPreviewDoc('');
     setHtmlValidationMessage('');
     setHtmlValidationPassed(null);
+  };
+
+  const onPreviewHtml = () => {
+    const previewSource = htmlOutput.trim() || htmlSource.trim();
+    setHtmlPreviewDoc(previewSource);
   };
 
   const onCopyHtml = async () => {
@@ -237,6 +256,88 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
     await navigator.clipboard.writeText(urlOutput);
   };
 
+  const onRunRegex = () => {
+    setRegexError('');
+    setRegexMatches([]);
+
+    const normalizedPattern = regexPattern.trim();
+    if (!normalizedPattern || !regexSource) {
+      return;
+    }
+
+    try {
+      const regex = new RegExp(normalizedPattern, regexFlags.trim());
+      const matches: RegexMatchRecord[] = [];
+      if (regex.global) {
+        let guard = 0;
+        let currentMatch = regex.exec(regexSource);
+        while (currentMatch && guard < 3000) {
+          matches.push({
+            index: currentMatch.index,
+            value: currentMatch[0],
+            groups: currentMatch.slice(1).filter((group) => typeof group === 'string')
+          });
+          if (currentMatch[0] === '') {
+            regex.lastIndex += 1;
+          }
+          currentMatch = regex.exec(regexSource);
+          guard += 1;
+        }
+      } else {
+        const single = regex.exec(regexSource);
+        if (single) {
+          matches.push({
+            index: single.index,
+            value: single[0],
+            groups: single.slice(1).filter((group) => typeof group === 'string')
+          });
+        }
+      }
+      setRegexMatches(matches);
+    } catch (error) {
+      setRegexError(`${message.tools.regexInvalidPrefix} ${(error as Error).message}`);
+    }
+  };
+
+  const onClearRegex = () => {
+    setRegexPattern('');
+    setRegexFlags('g');
+    setRegexSource('');
+    setRegexMatches([]);
+    setRegexError('');
+  };
+
+  const renderRegexPreview = (): ReactNode => {
+    if (!regexSource) {
+      return <p className="tools-preview-empty">{message.tools.regexNoMatch}</p>;
+    }
+
+    if (regexMatches.length === 0) {
+      return <p className="tools-preview-empty">{message.tools.regexNoMatch}</p>;
+    }
+
+    const segments: ReactNode[] = [];
+    let cursor = 0;
+    regexMatches.forEach((match, index) => {
+      const matchEnd = match.index + match.value.length;
+      if (match.index > cursor) {
+        segments.push(
+          <span key={`text-${cursor}`}>{regexSource.slice(cursor, match.index)}</span>
+        );
+      }
+      segments.push(
+        <mark className="tools-regex-mark" key={`mark-${index}`}>
+          {regexSource.slice(match.index, matchEnd)}
+        </mark>
+      );
+      cursor = matchEnd;
+    });
+    if (cursor < regexSource.length) {
+      segments.push(<span key={`tail-${cursor}`}>{regexSource.slice(cursor)}</span>);
+    }
+    return <p className="tools-regex-highlight">{segments}</p>;
+  };
+
   const renderOverview = () => {
     return (
       <div className="tools-overview-grid">
@@ -252,38 +353,55 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
           <h3>{message.tools.urlTitle}</h3>
           <p>{message.tools.urlDescription}</p>
         </a>
+        <a className="tools-nav-card" href={regexHref}>
+          <h3>{message.tools.regexTitle}</h3>
+          <p>{message.tools.regexDescription}</p>
+        </a>
       </div>
     );
   };
 
   const renderHtmlTool = () => {
     return (
-      <article className="tools-card tools-card-single">
-        <h3>{message.tools.formatterTitle}</h3>
-        <p>{message.tools.formatterDescription}</p>
-        <label className="tools-field">
-          <span>{message.tools.sourceLabel}</span>
-          <textarea value={htmlSource} onChange={(event) => setHtmlSource(event.target.value)} placeholder={message.tools.sourcePlaceholder} />
-        </label>
-        <div className="tools-actions tools-actions-three">
-          <button type="button" className="world-action-button action-enter" onClick={onFormatHtml}>
-            {message.tools.formatAction}
-          </button>
-          <button type="button" className="world-action-button action-spin" onClick={onValidateHtml}>
-            {message.tools.validateAction}
-          </button>
-          <button type="button" className="world-action-button world-action-button-alt action-rule" onClick={onClearHtml}>
-            {message.tools.clearAction}
+      <article className="tools-card tools-card-single tools-card-html">
+        <div className="tools-card-main">
+          <h3>{message.tools.formatterTitle}</h3>
+          <p>{message.tools.formatterDescription}</p>
+          <label className="tools-field">
+            <span>{message.tools.sourceLabel}</span>
+            <textarea value={htmlSource} onChange={(event) => setHtmlSource(event.target.value)} placeholder={message.tools.sourcePlaceholder} />
+          </label>
+          <div className="tools-actions tools-actions-four">
+            <button type="button" className="world-action-button action-enter" onClick={onFormatHtml}>
+              {message.tools.formatAction}
+            </button>
+            <button type="button" className="world-action-button action-spin" onClick={onValidateHtml}>
+              {message.tools.validateAction}
+            </button>
+            <button type="button" className="world-action-button action-history" onClick={onPreviewHtml}>
+              {message.tools.previewAction}
+            </button>
+            <button type="button" className="world-action-button world-action-button-alt action-rule" onClick={onClearHtml}>
+              {message.tools.clearAction}
+            </button>
+          </div>
+          {htmlValidationMessage ? <p className={`tools-validation ${htmlValidationPassed ? 'is-pass' : 'is-fail'}`}>{htmlValidationMessage}</p> : null}
+          <label className="tools-field">
+            <span>{message.tools.outputLabel}</span>
+            <textarea value={htmlOutput} readOnly />
+          </label>
+          <button type="button" className="world-action-button world-action-button-alt action-history tools-copy" onClick={onCopyHtml}>
+            {message.tools.copyAction}
           </button>
         </div>
-        {htmlValidationMessage ? <p className={`tools-validation ${htmlValidationPassed ? 'is-pass' : 'is-fail'}`}>{htmlValidationMessage}</p> : null}
-        <label className="tools-field">
-          <span>{message.tools.outputLabel}</span>
-          <textarea value={htmlOutput} readOnly />
-        </label>
-        <button type="button" className="world-action-button world-action-button-alt action-history tools-copy" onClick={onCopyHtml}>
-          {message.tools.copyAction}
-        </button>
+        <section className="tools-preview tools-card-side">
+          <h4>{message.tools.previewTitle}</h4>
+          {htmlPreviewDoc ? (
+            <iframe className="tools-preview-frame" srcDoc={htmlPreviewDoc} title={message.tools.previewTitle} sandbox="allow-scripts allow-forms" />
+          ) : (
+            <p className="tools-preview-empty">{message.tools.previewEmpty}</p>
+          )}
+        </section>
       </article>
     );
   };
@@ -351,6 +469,67 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
     );
   };
 
+  const renderRegexTool = () => {
+    return (
+      <article className="tools-card tools-card-single">
+        <h3>{message.tools.regexTitle}</h3>
+        <p>{message.tools.regexDescription}</p>
+        <div className="tools-inline-fields">
+          <label className="tools-field">
+            <span>{message.tools.regexPatternLabel}</span>
+            <input
+              type="text"
+              className="tools-input"
+              value={regexPattern}
+              onChange={(event) => setRegexPattern(event.target.value)}
+              placeholder={message.tools.regexPatternPlaceholder}
+            />
+          </label>
+          <label className="tools-field">
+            <span>{message.tools.regexFlagsLabel}</span>
+            <input type="text" className="tools-input" value={regexFlags} onChange={(event) => setRegexFlags(event.target.value)} placeholder="gim" />
+          </label>
+        </div>
+        <label className="tools-field">
+          <span>{message.tools.sourceLabel}</span>
+          <textarea value={regexSource} onChange={(event) => setRegexSource(event.target.value)} placeholder={message.tools.regexTextPlaceholder} />
+        </label>
+        <div className="tools-actions tools-actions-three">
+          <button type="button" className="world-action-button action-enter" onClick={onRunRegex}>
+            {message.tools.regexRunAction}
+          </button>
+          <button type="button" className="world-action-button world-action-button-alt action-rule" onClick={onClearRegex}>
+            {message.tools.clearAction}
+          </button>
+        </div>
+        {regexError ? <p className="tools-validation is-fail">{regexError}</p> : null}
+        <section className="tools-preview">
+          <h4>{message.tools.regexResultTitle}</h4>
+          {renderRegexPreview()}
+          <p className="tools-regex-count">
+            {message.tools.regexMatchCount}: {regexMatches.length}
+          </p>
+          {regexMatches.length > 0 ? (
+            <ul className="tools-regex-list">
+              {regexMatches.map((match, index) => (
+                <li key={`regex-match-${index}`}>
+                  <span>
+                    {message.tools.regexMatchItem} {index + 1}: [{match.index}] "{match.value}"
+                  </span>
+                  {match.groups.length > 0 ? (
+                    <span>
+                      {message.tools.regexGroupsLabel}: {match.groups.join(' | ')}
+                    </span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+      </article>
+    );
+  };
+
   const activePanel = (() => {
     if (activeTool === 'html') {
       return renderHtmlTool();
@@ -360,6 +539,9 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
     }
     if (activeTool === 'url') {
       return renderUrlTool();
+    }
+    if (activeTool === 'regex') {
+      return renderRegexTool();
     }
     return renderOverview();
   })();
@@ -389,6 +571,9 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
         </a>
         <a className={`tools-subnav-item ${activeTool === 'url' ? 'is-active' : ''}`} href={urlHref}>
           {message.tools.urlNav}
+        </a>
+        <a className={`tools-subnav-item ${activeTool === 'regex' ? 'is-active' : ''}`} href={regexHref}>
+          {message.tools.regexNav}
         </a>
       </nav>
 
