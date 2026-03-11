@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '../../i18n/locale-context';
 import { useAiChat } from '../../hooks/useAiChat';
 
@@ -154,6 +154,7 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
   const [regexError, setRegexError] = useState('');
   const [chatInput, setChatInput] = useState('');
   const [showChatSettings, setShowChatSettings] = useState(false);
+  const chatScrollRef = useRef<HTMLElement | null>(null);
 
   const {
     settings: chatSettings,
@@ -331,6 +332,13 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
     setChatInput('');
     await sendChatMessage(content);
   };
+
+  useEffect(() => {
+    if (!chatScrollRef.current) {
+      return;
+    }
+    chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+  }, [chatMessages, isChatSending]);
 
   const renderRegexPreview = (): ReactNode => {
     if (!regexSource) {
@@ -562,66 +570,68 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
   const renderChatTool = () => {
     return (
       <article className="tools-card tools-card-single tools-card-chat">
-        <div className="tools-chat-header">
-          <h3>{message.tools.chatTitle}</h3>
-          <p>{message.tools.chatDescription}</p>
-          <div className="tools-actions tools-actions-three">
-            <button type="button" className="world-action-button action-enter" onClick={() => setShowChatSettings((prev) => !prev)}>
-              {showChatSettings ? message.tools.chatHideSettingsAction : message.tools.chatShowSettingsAction}
-            </button>
-            <button type="button" className="world-action-button world-action-button-alt action-rule" onClick={() => clearChatMessages(message.tools.chatGreeting)}>
-              {message.tools.chatResetAction}
-            </button>
+        <div className="tools-chat-top">
+          <div className="tools-chat-header">
+            <h3>{message.tools.chatTitle}</h3>
+            <p>{message.tools.chatDescription}</p>
+            <div className="tools-actions tools-actions-three">
+              <button type="button" className="world-action-button action-enter" onClick={() => setShowChatSettings((prev) => !prev)}>
+                {showChatSettings ? message.tools.chatHideSettingsAction : message.tools.chatShowSettingsAction}
+              </button>
+              <button type="button" className="world-action-button world-action-button-alt action-rule" onClick={() => clearChatMessages(message.tools.chatGreeting)}>
+                {message.tools.chatResetAction}
+              </button>
+            </div>
+            <p className={`tools-validation ${canUseRemoteChat ? 'is-pass' : 'is-fail'}`}>
+              {canUseRemoteChat ? message.tools.chatRemoteOn : message.tools.chatRemoteOff}
+            </p>
           </div>
-          <p className={`tools-validation ${canUseRemoteChat ? 'is-pass' : 'is-fail'}`}>
-            {canUseRemoteChat ? message.tools.chatRemoteOn : message.tools.chatRemoteOff}
-          </p>
+
+          {showChatSettings ? (
+            <section className="tools-chat-settings">
+              <label className="tools-field">
+                <span>{message.tools.chatEndpointLabel}</span>
+                <input
+                  type="text"
+                  className="tools-input"
+                  value={chatSettings.endpoint}
+                  onChange={(event) => updateChatSettings({ endpoint: event.target.value })}
+                  placeholder={message.tools.chatEndpointPlaceholder}
+                />
+              </label>
+              <label className="tools-field">
+                <span>{message.tools.chatModelLabel}</span>
+                <input
+                  type="text"
+                  className="tools-input"
+                  value={chatSettings.model}
+                  onChange={(event) => updateChatSettings({ model: event.target.value })}
+                  placeholder={message.tools.chatModelPlaceholder}
+                />
+              </label>
+              <label className="tools-field">
+                <span>{message.tools.chatApiKeyLabel}</span>
+                <input
+                  type="password"
+                  className="tools-input"
+                  value={chatSettings.apiKey}
+                  onChange={(event) => updateChatSettings({ apiKey: event.target.value })}
+                  placeholder={message.tools.chatApiKeyPlaceholder}
+                />
+              </label>
+              <label className="tools-field">
+                <span>{message.tools.chatSystemPromptLabel}</span>
+                <textarea
+                  value={chatSettings.systemPrompt}
+                  onChange={(event) => updateChatSettings({ systemPrompt: event.target.value })}
+                  placeholder={message.tools.chatSystemPromptPlaceholder}
+                />
+              </label>
+            </section>
+          ) : null}
         </div>
 
-        {showChatSettings ? (
-          <section className="tools-chat-settings">
-            <label className="tools-field">
-              <span>{message.tools.chatEndpointLabel}</span>
-              <input
-                type="text"
-                className="tools-input"
-                value={chatSettings.endpoint}
-                onChange={(event) => updateChatSettings({ endpoint: event.target.value })}
-                placeholder={message.tools.chatEndpointPlaceholder}
-              />
-            </label>
-            <label className="tools-field">
-              <span>{message.tools.chatModelLabel}</span>
-              <input
-                type="text"
-                className="tools-input"
-                value={chatSettings.model}
-                onChange={(event) => updateChatSettings({ model: event.target.value })}
-                placeholder={message.tools.chatModelPlaceholder}
-              />
-            </label>
-            <label className="tools-field">
-              <span>{message.tools.chatApiKeyLabel}</span>
-              <input
-                type="password"
-                className="tools-input"
-                value={chatSettings.apiKey}
-                onChange={(event) => updateChatSettings({ apiKey: event.target.value })}
-                placeholder={message.tools.chatApiKeyPlaceholder}
-              />
-            </label>
-            <label className="tools-field">
-              <span>{message.tools.chatSystemPromptLabel}</span>
-              <textarea
-                value={chatSettings.systemPrompt}
-                onChange={(event) => updateChatSettings({ systemPrompt: event.target.value })}
-                placeholder={message.tools.chatSystemPromptPlaceholder}
-              />
-            </label>
-          </section>
-        ) : null}
-
-        <section className="tools-chat-window">
+        <section className="tools-chat-window" ref={chatScrollRef}>
           {chatMessages.map((item) => (
             <article key={item.id} className={`tools-chat-bubble ${item.role === 'user' ? 'is-user' : 'is-assistant'}`}>
               <p className="tools-chat-role">{item.role === 'user' ? message.tools.chatUserLabel : message.tools.chatAssistantLabel}</p>
@@ -631,24 +641,27 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
           {isChatSending ? <p className="tools-chat-sending">{message.tools.chatSending}</p> : null}
         </section>
 
-        <label className="tools-field">
-          <span>{message.tools.chatInputLabel}</span>
-          <textarea
-            value={chatInput}
-            onChange={(event) => setChatInput(event.target.value)}
-            placeholder={message.tools.chatInputPlaceholder}
-            onKeyDown={(event) => {
-              if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
-                event.preventDefault();
-                void onSubmitChat();
-              }
-            }}
-          />
-        </label>
-        <div className="tools-actions tools-actions-three">
-          <button type="button" className="world-action-button action-enter" onClick={() => void onSubmitChat()} disabled={isChatSending}>
-            {message.tools.chatSendAction}
-          </button>
+        <div className="tools-chat-composer">
+          <label className="tools-field tools-chat-input-field">
+            <span>{message.tools.chatInputLabel}</span>
+            <textarea
+              className="tools-chat-input"
+              value={chatInput}
+              onChange={(event) => setChatInput(event.target.value)}
+              placeholder={message.tools.chatInputPlaceholder}
+              onKeyDown={(event) => {
+                if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+                  event.preventDefault();
+                  void onSubmitChat();
+                }
+              }}
+            />
+          </label>
+          <div className="tools-actions tools-actions-three">
+            <button type="button" className="world-action-button action-enter" onClick={() => void onSubmitChat()} disabled={isChatSending}>
+              {message.tools.chatSendAction}
+            </button>
+          </div>
         </div>
       </article>
     );
