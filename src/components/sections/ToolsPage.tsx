@@ -1,5 +1,6 @@
 import { type ReactNode, useMemo, useState } from 'react';
 import { useI18n } from '../../i18n/locale-context';
+import { useAiChat } from '../../hooks/useAiChat';
 
 const VOID_TAGS = new Set([
   'area',
@@ -24,13 +25,13 @@ type RegexMatchRecord = {
   groups: string[];
 };
 
-export type ToolsRouteKey = 'overview' | 'html' | 'json' | 'url' | 'regex';
+export type ToolsRouteKey = 'overview' | 'html' | 'json' | 'url' | 'regex' | 'chat';
 
 type ToolsPageProps = {
   activeTool: ToolsRouteKey;
 };
 
-const getRouteHref = (segment: '' | 'tools' | 'tools/html' | 'tools/json' | 'tools/url' | 'tools/regex'): string => {
+const getRouteHref = (segment: '' | 'tools' | 'tools/html' | 'tools/json' | 'tools/url' | 'tools/regex' | 'tools/chat'): string => {
   const basePath = import.meta.env.BASE_URL ?? '/';
   const normalizedBase = basePath.endsWith('/') ? basePath : `${basePath}/`;
   return segment ? `${normalizedBase}${segment}` : normalizedBase;
@@ -131,6 +132,7 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
   const jsonHref = useMemo(() => getRouteHref('tools/json'), []);
   const urlHref = useMemo(() => getRouteHref('tools/url'), []);
   const regexHref = useMemo(() => getRouteHref('tools/regex'), []);
+  const chatHref = useMemo(() => getRouteHref('tools/chat'), []);
 
   const [htmlSource, setHtmlSource] = useState('');
   const [htmlOutput, setHtmlOutput] = useState('');
@@ -150,6 +152,20 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
   const [regexSource, setRegexSource] = useState('');
   const [regexMatches, setRegexMatches] = useState<RegexMatchRecord[]>([]);
   const [regexError, setRegexError] = useState('');
+  const [chatInput, setChatInput] = useState('');
+  const [showChatSettings, setShowChatSettings] = useState(false);
+
+  const {
+    settings: chatSettings,
+    messages: chatMessages,
+    isSending: isChatSending,
+    canUseRemote: canUseRemoteChat,
+    updateSettings: updateChatSettings,
+    clearMessages: clearChatMessages,
+    sendMessage: sendChatMessage
+  } = useAiChat({
+    initialAssistantMessage: message.tools.chatGreeting
+  });
 
   const onFormatHtml = () => {
     setHtmlOutput(formatHtml(htmlSource));
@@ -307,6 +323,15 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
     setRegexError('');
   };
 
+  const onSubmitChat = async () => {
+    const content = chatInput.trim();
+    if (!content || isChatSending) {
+      return;
+    }
+    setChatInput('');
+    await sendChatMessage(content);
+  };
+
   const renderRegexPreview = (): ReactNode => {
     if (!regexSource) {
       return <p className="tools-preview-empty">{message.tools.regexNoMatch}</p>;
@@ -356,6 +381,10 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
         <a className="tools-nav-card" href={regexHref}>
           <h3>{message.tools.regexTitle}</h3>
           <p>{message.tools.regexDescription}</p>
+        </a>
+        <a className="tools-nav-card" href={chatHref}>
+          <h3>{message.tools.chatTitle}</h3>
+          <p>{message.tools.chatDescription}</p>
         </a>
       </div>
     );
@@ -530,6 +559,101 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
     );
   };
 
+  const renderChatTool = () => {
+    return (
+      <article className="tools-card tools-card-single tools-card-chat">
+        <div className="tools-chat-header">
+          <h3>{message.tools.chatTitle}</h3>
+          <p>{message.tools.chatDescription}</p>
+          <div className="tools-actions tools-actions-three">
+            <button type="button" className="world-action-button action-enter" onClick={() => setShowChatSettings((prev) => !prev)}>
+              {showChatSettings ? message.tools.chatHideSettingsAction : message.tools.chatShowSettingsAction}
+            </button>
+            <button type="button" className="world-action-button world-action-button-alt action-rule" onClick={() => clearChatMessages(message.tools.chatGreeting)}>
+              {message.tools.chatResetAction}
+            </button>
+          </div>
+          <p className={`tools-validation ${canUseRemoteChat ? 'is-pass' : 'is-fail'}`}>
+            {canUseRemoteChat ? message.tools.chatRemoteOn : message.tools.chatRemoteOff}
+          </p>
+        </div>
+
+        {showChatSettings ? (
+          <section className="tools-chat-settings">
+            <label className="tools-field">
+              <span>{message.tools.chatEndpointLabel}</span>
+              <input
+                type="text"
+                className="tools-input"
+                value={chatSettings.endpoint}
+                onChange={(event) => updateChatSettings({ endpoint: event.target.value })}
+                placeholder={message.tools.chatEndpointPlaceholder}
+              />
+            </label>
+            <label className="tools-field">
+              <span>{message.tools.chatModelLabel}</span>
+              <input
+                type="text"
+                className="tools-input"
+                value={chatSettings.model}
+                onChange={(event) => updateChatSettings({ model: event.target.value })}
+                placeholder={message.tools.chatModelPlaceholder}
+              />
+            </label>
+            <label className="tools-field">
+              <span>{message.tools.chatApiKeyLabel}</span>
+              <input
+                type="password"
+                className="tools-input"
+                value={chatSettings.apiKey}
+                onChange={(event) => updateChatSettings({ apiKey: event.target.value })}
+                placeholder={message.tools.chatApiKeyPlaceholder}
+              />
+            </label>
+            <label className="tools-field">
+              <span>{message.tools.chatSystemPromptLabel}</span>
+              <textarea
+                value={chatSettings.systemPrompt}
+                onChange={(event) => updateChatSettings({ systemPrompt: event.target.value })}
+                placeholder={message.tools.chatSystemPromptPlaceholder}
+              />
+            </label>
+          </section>
+        ) : null}
+
+        <section className="tools-chat-window">
+          {chatMessages.map((item) => (
+            <article key={item.id} className={`tools-chat-bubble ${item.role === 'user' ? 'is-user' : 'is-assistant'}`}>
+              <p className="tools-chat-role">{item.role === 'user' ? message.tools.chatUserLabel : message.tools.chatAssistantLabel}</p>
+              <p>{item.content}</p>
+            </article>
+          ))}
+          {isChatSending ? <p className="tools-chat-sending">{message.tools.chatSending}</p> : null}
+        </section>
+
+        <label className="tools-field">
+          <span>{message.tools.chatInputLabel}</span>
+          <textarea
+            value={chatInput}
+            onChange={(event) => setChatInput(event.target.value)}
+            placeholder={message.tools.chatInputPlaceholder}
+            onKeyDown={(event) => {
+              if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+                event.preventDefault();
+                void onSubmitChat();
+              }
+            }}
+          />
+        </label>
+        <div className="tools-actions tools-actions-three">
+          <button type="button" className="world-action-button action-enter" onClick={() => void onSubmitChat()} disabled={isChatSending}>
+            {message.tools.chatSendAction}
+          </button>
+        </div>
+      </article>
+    );
+  };
+
   const activePanel = (() => {
     if (activeTool === 'html') {
       return renderHtmlTool();
@@ -542,6 +666,9 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
     }
     if (activeTool === 'regex') {
       return renderRegexTool();
+    }
+    if (activeTool === 'chat') {
+      return renderChatTool();
     }
     return renderOverview();
   })();
@@ -574,6 +701,9 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
         </a>
         <a className={`tools-subnav-item ${activeTool === 'regex' ? 'is-active' : ''}`} href={regexHref}>
           {message.tools.regexNav}
+        </a>
+        <a className={`tools-subnav-item ${activeTool === 'chat' ? 'is-active' : ''}`} href={chatHref}>
+          {message.tools.chatNav}
         </a>
       </nav>
 

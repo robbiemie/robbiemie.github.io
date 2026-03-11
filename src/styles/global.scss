@@ -4199,6 +4199,80 @@ body {
   gap: 0.12rem;
 }
 
+.tools-card-chat {
+  max-width: 980px;
+}
+
+.tools-chat-header {
+  display: grid;
+  gap: 0.46rem;
+}
+
+.tools-chat-header .tools-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tools-chat-settings {
+  display: grid;
+  gap: 0.42rem;
+  padding: 0.58rem;
+  border: 2px solid rgba(36, 95, 132, 0.22);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.tools-chat-settings .tools-field textarea {
+  min-height: 84px;
+}
+
+.tools-chat-window {
+  min-height: 260px;
+  max-height: 360px;
+  overflow: auto;
+  display: grid;
+  gap: 0.42rem;
+  padding: 0.58rem;
+  border: 2px solid rgba(36, 95, 132, 0.26);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.tools-chat-bubble {
+  display: grid;
+  gap: 0.18rem;
+  margin: 0;
+  padding: 0.45rem 0.56rem;
+  border-radius: 10px;
+}
+
+.tools-chat-bubble p {
+  margin: 0;
+}
+
+.tools-chat-bubble.is-user {
+  background: rgba(255, 230, 155, 0.42);
+  border: 1px solid rgba(190, 145, 34, 0.25);
+}
+
+.tools-chat-bubble.is-assistant {
+  background: rgba(220, 241, 255, 0.64);
+  border: 1px solid rgba(79, 132, 171, 0.24);
+}
+
+.tools-chat-role {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: #356789;
+}
+
+.tools-chat-sending {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #2e668f;
+}
+
 @media (max-width: 960px) {
   .tools-overview-grid {
     grid-template-columns: 1fr;
@@ -4254,6 +4328,10 @@ body {
   .tools-subnav-item {
     flex: 1;
     text-align: center;
+  }
+
+  .tools-chat-header .tools-actions {
+    grid-template-columns: 1fr;
   }
 }
 

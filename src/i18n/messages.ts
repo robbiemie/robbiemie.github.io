@@ -228,6 +228,7 @@ type Messages = {
     jsonNav: string;
     urlNav: string;
     regexNav: string;
+    chatNav: string;
     formatterTitle: string;
     formatterDescription: string;
     validatorTitle: string;
@@ -238,6 +239,8 @@ type Messages = {
     urlDescription: string;
     regexTitle: string;
     regexDescription: string;
+    chatTitle: string;
+    chatDescription: string;
     sourceLabel: string;
     outputLabel: string;
     regexPatternLabel: string;
@@ -254,6 +257,10 @@ type Messages = {
     previewTitle: string;
     previewEmpty: string;
     regexRunAction: string;
+    chatSendAction: string;
+    chatResetAction: string;
+    chatShowSettingsAction: string;
+    chatHideSettingsAction: string;
     jsonFormatAction: string;
     jsonValidateAction: string;
     urlEncodeAction: string;
@@ -269,6 +276,22 @@ type Messages = {
     regexMatchCount: string;
     regexMatchItem: string;
     regexGroupsLabel: string;
+    chatGreeting: string;
+    chatSending: string;
+    chatRemoteOn: string;
+    chatRemoteOff: string;
+    chatInputLabel: string;
+    chatInputPlaceholder: string;
+    chatUserLabel: string;
+    chatAssistantLabel: string;
+    chatEndpointLabel: string;
+    chatEndpointPlaceholder: string;
+    chatModelLabel: string;
+    chatModelPlaceholder: string;
+    chatApiKeyLabel: string;
+    chatApiKeyPlaceholder: string;
+    chatSystemPromptLabel: string;
+    chatSystemPromptPlaceholder: string;
   };
 };
 
@@ -590,6 +613,7 @@ export const messages: Record<Locale, Messages> = {
       jsonNav: 'JSON',
       urlNav: 'URL',
       regexNav: 'Regex',
+      chatNav: 'AI Chat',
       formatterTitle: 'HTML Formatter',
       formatterDescription: 'Normalize indentation and structure for readable HTML.',
       validatorTitle: 'HTML Validator',
@@ -600,6 +624,8 @@ export const messages: Record<Locale, Messages> = {
       urlDescription: 'Quick encode or decode for query and path text.',
       regexTitle: 'Regex Visualizer',
       regexDescription: 'Test regex and visualize matched ranges.',
+      chatTitle: 'AI Chat',
+      chatDescription: 'A lightweight chat window with optional OpenAI-compatible endpoint settings.',
       sourceLabel: 'Source',
       outputLabel: 'Output',
       regexPatternLabel: 'Pattern',
@@ -616,6 +642,10 @@ export const messages: Record<Locale, Messages> = {
       previewTitle: 'Preview',
       previewEmpty: 'No HTML to preview.',
       regexRunAction: 'Run Regex',
+      chatSendAction: 'Send',
+      chatResetAction: 'Clear Chat',
+      chatShowSettingsAction: 'Show Settings',
+      chatHideSettingsAction: 'Hide Settings',
       jsonFormatAction: 'Format JSON',
       jsonValidateAction: 'Validate JSON',
       urlEncodeAction: 'Encode URL',
@@ -630,7 +660,23 @@ export const messages: Record<Locale, Messages> = {
       regexNoMatch: 'No match.',
       regexMatchCount: 'Match count',
       regexMatchItem: 'Match',
-      regexGroupsLabel: 'Groups'
+      regexGroupsLabel: 'Groups',
+      chatGreeting: 'Chat module is ready. Configure endpoint and API key to connect a real model.',
+      chatSending: 'Waiting for response...',
+      chatRemoteOn: 'Remote model mode enabled',
+      chatRemoteOff: 'Local demo mode (endpoint/api key not configured)',
+      chatInputLabel: 'Message',
+      chatInputPlaceholder: 'Type your prompt, then send or press Ctrl/Cmd + Enter',
+      chatUserLabel: 'You',
+      chatAssistantLabel: 'Assistant',
+      chatEndpointLabel: 'Endpoint',
+      chatEndpointPlaceholder: 'https://your-domain/v1/chat/completions',
+      chatModelLabel: 'Model',
+      chatModelPlaceholder: 'gpt-4o-mini',
+      chatApiKeyLabel: 'API Key',
+      chatApiKeyPlaceholder: 'sk-...',
+      chatSystemPromptLabel: 'System Prompt',
+      chatSystemPromptPlaceholder: 'Set behavior instructions for the assistant'
     }
   },
   zh: {
@@ -934,6 +980,7 @@ export const messages: Record<Locale, Messages> = {
       jsonNav: 'JSON',
       urlNav: 'URL',
       regexNav: '正则',
+      chatNav: 'AI 聊天',
       formatterTitle: 'HTML 格式化',
       formatterDescription: '统一缩进和结构，便于阅读与提交。',
       validatorTitle: 'HTML 结构校验',
@@ -944,6 +991,8 @@ export const messages: Record<Locale, Messages> = {
       urlDescription: '快速处理查询参数与路径文本。',
       regexTitle: '正则可视化',
       regexDescription: '输入正则与文本，直观查看命中区间。',
+      chatTitle: 'AI 聊天窗口',
+      chatDescription: '内置轻量聊天模块，可选配置 OpenAI 兼容接口。',
       sourceLabel: '输入',
       outputLabel: '输出',
       regexPatternLabel: '表达式',
@@ -960,6 +1009,10 @@ export const messages: Record<Locale, Messages> = {
       previewTitle: '预览',
       previewEmpty: '暂无可预览内容。',
       regexRunAction: '执行匹配',
+      chatSendAction: '发送',
+      chatResetAction: '清空会话',
+      chatShowSettingsAction: '展开配置',
+      chatHideSettingsAction: '收起配置',
       jsonFormatAction: '格式化 JSON',
       jsonValidateAction: '校验 JSON',
       urlEncodeAction: 'URL 编码',
@@ -974,7 +1027,23 @@ export const messages: Record<Locale, Messages> = {
       regexNoMatch: '未命中。',
       regexMatchCount: '命中数量',
       regexMatchItem: '命中',
-      regexGroupsLabel: '分组'
+      regexGroupsLabel: '分组',
+      chatGreeting: '聊天模块已就绪。可配置 endpoint 与 api key 后连接真实模型。',
+      chatSending: '模型回复中...',
+      chatRemoteOn: '已启用远程模型模式',
+      chatRemoteOff: '本地演示模式（未配置 endpoint 或 api key）',
+      chatInputLabel: '输入内容',
+      chatInputPlaceholder: '输入问题后发送，或按 Ctrl/Cmd + Enter',
+      chatUserLabel: '你',
+      chatAssistantLabel: '助手',
+      chatEndpointLabel: '接口地址',
+      chatEndpointPlaceholder: 'https://your-domain/v1/chat/completions',
+      chatModelLabel: '模型名称',
+      chatModelPlaceholder: 'gpt-4o-mini',
+      chatApiKeyLabel: 'API Key',
+      chatApiKeyPlaceholder: 'sk-...',
+      chatSystemPromptLabel: '系统提示词',
+      chatSystemPromptPlaceholder: '设置助手行为与回复风格'
     }
   }
 };
