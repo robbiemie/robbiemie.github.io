@@ -124,6 +124,31 @@ const validateHtml = (source: string): { ok: boolean; message: string } => {
   return { ok: true, message: '' };
 };
 
+const toSnakeCase = (value: string): string => {
+  return value
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/[\s-]+/g, '_')
+    .replace(/_+/g, '_')
+    .toLowerCase();
+};
+
+const convertJsonKeysToSnakeCase = (input: unknown): unknown => {
+  if (Array.isArray(input)) {
+    return input.map((item) => convertJsonKeysToSnakeCase(item));
+  }
+
+  if (input !== null && typeof input === 'object') {
+    const sourceRecord = input as Record<string, unknown>;
+    const resultRecord: Record<string, unknown> = {};
+    Object.entries(sourceRecord).forEach(([key, value]) => {
+      resultRecord[toSnakeCase(key)] = convertJsonKeysToSnakeCase(value);
+    });
+    return resultRecord;
+  }
+
+  return input;
+};
+
 export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
   const { message } = useI18n();
   const homeHref = useMemo(() => getRouteHref(''), []);
@@ -229,6 +254,26 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
       JSON.parse(normalized);
       setJsonValidationPassed(true);
       setJsonValidationMessage(message.tools.jsonValidatePass);
+    } catch (error) {
+      setJsonValidationPassed(false);
+      setJsonValidationMessage(`${message.tools.jsonValidateFailPrefix} ${(error as Error).message}`);
+    }
+  };
+
+  const onSnakeCaseJson = () => {
+    const normalized = jsonSource.trim();
+    if (!normalized) {
+      setJsonValidationPassed(false);
+      setJsonValidationMessage(`${message.tools.jsonValidateFailPrefix} Input is empty.`);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(normalized);
+      const converted = convertJsonKeysToSnakeCase(parsed);
+      setJsonOutput(JSON.stringify(converted, null, 2));
+      setJsonValidationPassed(true);
+      setJsonValidationMessage(message.tools.jsonSnakeCaseDone);
     } catch (error) {
       setJsonValidationPassed(false);
       setJsonValidationMessage(`${message.tools.jsonValidateFailPrefix} ${(error as Error).message}`);
@@ -452,12 +497,15 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
           <span>{message.tools.sourceLabel}</span>
           <textarea value={jsonSource} onChange={(event) => setJsonSource(event.target.value)} placeholder={message.tools.jsonPlaceholder} />
         </label>
-        <div className="tools-actions tools-actions-three">
+        <div className="tools-actions tools-actions-four">
           <button type="button" className="world-action-button action-enter" onClick={onFormatJson}>
             {message.tools.jsonFormatAction}
           </button>
           <button type="button" className="world-action-button action-spin" onClick={onValidateJson}>
             {message.tools.jsonValidateAction}
+          </button>
+          <button type="button" className="world-action-button action-history" onClick={onSnakeCaseJson}>
+            {message.tools.jsonSnakeCaseAction}
           </button>
           <button type="button" className="world-action-button world-action-button-alt action-rule" onClick={onClearJson}>
             {message.tools.clearAction}

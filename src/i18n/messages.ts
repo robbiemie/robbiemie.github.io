@@ -263,6 +263,7 @@ type Messages = {
     chatHideSettingsAction: string;
     jsonFormatAction: string;
     jsonValidateAction: string;
+    jsonSnakeCaseAction: string;
     urlEncodeAction: string;
     urlDecodeAction: string;
     clearAction: string;
@@ -271,6 +272,7 @@ type Messages = {
     validateFailPrefix: string;
     jsonValidatePass: string;
     jsonValidateFailPrefix: string;
+    jsonSnakeCaseDone: string;
     regexInvalidPrefix: string;
     regexNoMatch: string;
     regexMatchCount: string;
@@ -648,6 +650,7 @@ export const messages: Record<Locale, Messages> = {
       chatHideSettingsAction: 'Hide Settings',
       jsonFormatAction: 'Format JSON',
       jsonValidateAction: 'Validate JSON',
+      jsonSnakeCaseAction: 'To snake_case',
       urlEncodeAction: 'Encode URL',
       urlDecodeAction: 'Decode URL',
       clearAction: 'Clear',
@@ -656,6 +659,7 @@ export const messages: Record<Locale, Messages> = {
       validateFailPrefix: 'Structure issue:',
       jsonValidatePass: 'JSON is valid.',
       jsonValidateFailPrefix: 'JSON issue:',
+      jsonSnakeCaseDone: 'Converted JSON keys to snake_case.',
       regexInvalidPrefix: 'Regex issue:',
       regexNoMatch: 'No match.',
       regexMatchCount: 'Match count',
@@ -1015,6 +1019,7 @@ export const messages: Record<Locale, Messages> = {
       chatHideSettingsAction: '收起配置',
       jsonFormatAction: '格式化 JSON',
       jsonValidateAction: '校验 JSON',
+      jsonSnakeCaseAction: '转下划线',
       urlEncodeAction: 'URL 编码',
       urlDecodeAction: 'URL 解码',
       clearAction: '清空',
@@ -1023,6 +1028,7 @@ export const messages: Record<Locale, Messages> = {
       validateFailPrefix: '结构异常：',
       jsonValidatePass: 'JSON 校验通过。',
       jsonValidateFailPrefix: 'JSON 异常：',
+      jsonSnakeCaseDone: '已转换为下划线 key。',
       regexInvalidPrefix: '正则异常：',
       regexNoMatch: '未命中。',
       regexMatchCount: '命中数量',
