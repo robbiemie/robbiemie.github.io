@@ -14,6 +14,7 @@ export const HeroSection = observer(() => {
   } = useRootStore();
   const isResourceUnlocked = totalScore > 5;
   const toolsHref = `${import.meta.env.BASE_URL}tools`;
+  const healthHref = `${import.meta.env.BASE_URL}health`;
 
   return (
     <section className="hero-section screen-section" id="home">
@@ -34,6 +35,10 @@ export const HeroSection = observer(() => {
           <a className="hero-link hero-link-secondary" href={toolsHref}>
             <HeroLinkIcon name="knowledge" />
             {message.hero.toolsButton}
+          </a>
+          <a className="hero-link hero-link-secondary" href={healthHref}>
+            <HeroLinkIcon name="health" />
+            {message.hero.healthButton}
           </a>
           {isResourceUnlocked ? (
             <>

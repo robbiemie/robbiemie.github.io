@@ -170,6 +170,7 @@ type Messages = {
     description: string;
     startButton: string;
     toolsButton: string;
+    healthButton: string;
     knowledgeButton: string;
     blogButton: string;
     githubButton: string;
@@ -217,6 +218,49 @@ type Messages = {
     customExpired: string;
     items: HolidayText[];
   };
+  health: {
+    kicker: string;
+    title: string;
+    description: string;
+    backHome: string;
+    backTools: string;
+    profileTitle: string;
+    profileDescription: string;
+    dateLabel: string;
+    weightLabel: string;
+    heightLabel: string;
+    genderLabel: string;
+    genderMale: string;
+    genderFemale: string;
+    genderOther: string;
+    genderValue: Record<'male' | 'female' | 'other', string>;
+    bodyFatLabel: string;
+    waistLabel: string;
+    targetWeightLabel: string;
+    noteLabel: string;
+    notePlaceholder: string;
+    bmiLabel: string;
+    bmiRangeCopy: string;
+    healthyWeightLabel: string;
+    deltaLabel: string;
+    rangeUnderweight: string;
+    rangeNormal: string;
+    rangeOverweight: string;
+    rangeObese: string;
+    ranges: Record<'underweight' | 'normal' | 'overweight' | 'obese', string>;
+    saveAction: string;
+    clearAction: string;
+    deleteAction: string;
+    trendTitle: string;
+    latestLabel: string;
+    noData: string;
+    dimensions: Record<'day' | 'week' | 'month' | 'year', string>;
+    chartTypes: Record<'line' | 'area' | 'bar', string>;
+    metrics: Record<'bmi' | 'weight' | 'bodyFat', string>;
+    metricValueLabels: Record<'bmi' | 'weight' | 'bodyFat', string>;
+    recordsTitle: string;
+    recordsCount: string;
+  };
   tools: {
     kicker: string;
     title: string;
@@ -229,6 +273,7 @@ type Messages = {
     urlNav: string;
     regexNav: string;
     chatNav: string;
+    healthNav: string;
     formatterTitle: string;
     formatterDescription: string;
     validatorTitle: string;
@@ -241,6 +286,8 @@ type Messages = {
     regexDescription: string;
     chatTitle: string;
     chatDescription: string;
+    healthTitle: string;
+    healthDescription: string;
     sourceLabel: string;
     outputLabel: string;
     regexPatternLabel: string;
@@ -294,6 +341,30 @@ type Messages = {
     chatApiKeyPlaceholder: string;
     chatSystemPromptLabel: string;
     chatSystemPromptPlaceholder: string;
+    healthDateLabel: string;
+    healthWeightLabel: string;
+    healthHeightLabel: string;
+    healthGenderLabel: string;
+    healthGenderMale: string;
+    healthGenderFemale: string;
+    healthGenderOther: string;
+    healthGenderValue: Record<'male' | 'female' | 'other', string>;
+    healthBmiLabel: string;
+    healthBmiRangeCopy: string;
+    healthRangeUnderweight: string;
+    healthRangeNormal: string;
+    healthRangeOverweight: string;
+    healthRangeObese: string;
+    healthRanges: Record<'underweight' | 'normal' | 'overweight' | 'obese', string>;
+    healthSaveAction: string;
+    healthClearAction: string;
+    healthTrendTitle: string;
+    healthLatestLabel: string;
+    healthNoData: string;
+    healthDimensions: Record<'day' | 'week' | 'month' | 'year', string>;
+    healthChartTypes: Record<'line' | 'area' | 'bar', string>;
+    healthRecordsTitle: string;
+    healthRecordsCount: string;
   };
 };
 
@@ -305,6 +376,7 @@ export const messages: Record<Locale, Messages> = {
       description: 'Learn with consistency. Keep moving forward.',
       startButton: 'Start Adventure',
       toolsButton: 'Frontend Tools',
+      healthButton: 'Health Hub',
       knowledgeButton: 'Knowledge Base',
       blogButton: 'CSDN Blog',
       githubButton: 'GitHub',
@@ -604,6 +676,75 @@ export const messages: Record<Locale, Messages> = {
         { name: 'National Day', startIso: '2026-10-01T00:00:00+08:00', endIso: '2026-10-07T23:59:59+08:00' }
       ]
     },
+    health: {
+      kicker: 'Health Lab',
+      title: 'Body Metrics & Trends',
+      description: 'Record your body data, estimate health state, and watch multi-metric trends evolve over time.',
+      backHome: 'Back Home',
+      backTools: 'Back Tools',
+      profileTitle: 'Profile Input',
+      profileDescription: 'Fill today’s snapshot, then save it to your local timeline.',
+      dateLabel: 'Date',
+      weightLabel: 'Weight (kg)',
+      heightLabel: 'Height (cm)',
+      genderLabel: 'Gender',
+      genderMale: 'Male',
+      genderFemale: 'Female',
+      genderOther: 'Other',
+      genderValue: {
+        male: 'Male',
+        female: 'Female',
+        other: 'Other'
+      },
+      bodyFatLabel: 'Body Fat (%)',
+      waistLabel: 'Waist (cm)',
+      targetWeightLabel: 'Target Weight (kg)',
+      noteLabel: 'Daily Note',
+      notePlaceholder: 'Sleep, workout, meals, or anything worth recording',
+      bmiLabel: 'Current BMI',
+      bmiRangeCopy: 'Reference range',
+      healthyWeightLabel: 'Healthy Weight',
+      deltaLabel: 'Gap To Target',
+      rangeUnderweight: 'Underweight: below 18.5',
+      rangeNormal: 'Healthy: 18.5 - 23.9',
+      rangeOverweight: 'Overweight: 24 - 27.9',
+      rangeObese: 'Obese: 28 and above',
+      ranges: {
+        underweight: 'Underweight',
+        normal: 'Healthy',
+        overweight: 'Overweight',
+        obese: 'Obese'
+      },
+      saveAction: 'Save Record',
+      clearAction: 'Clear Records',
+      deleteAction: 'Delete',
+      trendTitle: 'Trend Deck',
+      latestLabel: 'Latest',
+      noData: 'No health records yet.',
+      dimensions: {
+        day: 'Day',
+        week: 'Week',
+        month: 'Month',
+        year: 'Year'
+      },
+      chartTypes: {
+        line: 'Line',
+        area: 'Area',
+        bar: 'Bar'
+      },
+      metrics: {
+        bmi: 'BMI',
+        weight: 'Weight',
+        bodyFat: 'Body Fat'
+      },
+      metricValueLabels: {
+        bmi: 'BMI',
+        weight: 'Weight',
+        bodyFat: 'Body Fat'
+      },
+      recordsTitle: 'History',
+      recordsCount: '{count} records'
+    },
     tools: {
       kicker: 'Toolbox',
       title: 'Frontend Utilities',
@@ -616,6 +757,7 @@ export const messages: Record<Locale, Messages> = {
       urlNav: 'URL',
       regexNav: 'Regex',
       chatNav: 'AI Chat',
+      healthNav: 'Health',
       formatterTitle: 'HTML Formatter',
       formatterDescription: 'Normalize indentation and structure for readable HTML.',
       validatorTitle: 'HTML Validator',
@@ -628,6 +770,8 @@ export const messages: Record<Locale, Messages> = {
       regexDescription: 'Test regex and visualize matched ranges.',
       chatTitle: 'AI Chat',
       chatDescription: 'A lightweight chat window with optional OpenAI-compatible endpoint settings.',
+      healthTitle: 'Health Tracker',
+      healthDescription: 'Track body metrics, compute BMI, and view animated trends across time ranges.',
       sourceLabel: 'Source',
       outputLabel: 'Output',
       regexPatternLabel: 'Pattern',
@@ -680,7 +824,49 @@ export const messages: Record<Locale, Messages> = {
       chatApiKeyLabel: 'API Key',
       chatApiKeyPlaceholder: 'sk-...',
       chatSystemPromptLabel: 'System Prompt',
-      chatSystemPromptPlaceholder: 'Set behavior instructions for the assistant'
+      chatSystemPromptPlaceholder: 'Set behavior instructions for the assistant',
+      healthDateLabel: 'Date',
+      healthWeightLabel: 'Weight (kg)',
+      healthHeightLabel: 'Height (cm)',
+      healthGenderLabel: 'Gender',
+      healthGenderMale: 'Male',
+      healthGenderFemale: 'Female',
+      healthGenderOther: 'Other',
+      healthGenderValue: {
+        male: 'Male',
+        female: 'Female',
+        other: 'Other'
+      },
+      healthBmiLabel: 'Current BMI',
+      healthBmiRangeCopy: 'Reference range',
+      healthRangeUnderweight: 'Underweight: below 18.5',
+      healthRangeNormal: 'Healthy: 18.5 - 23.9',
+      healthRangeOverweight: 'Overweight: 24 - 27.9',
+      healthRangeObese: 'Obese: 28 and above',
+      healthRanges: {
+        underweight: 'Underweight',
+        normal: 'Healthy',
+        overweight: 'Overweight',
+        obese: 'Obese'
+      },
+      healthSaveAction: 'Save Record',
+      healthClearAction: 'Clear Records',
+      healthTrendTitle: 'BMI Trend',
+      healthLatestLabel: 'Latest',
+      healthNoData: 'No health records yet.',
+      healthDimensions: {
+        day: 'Day',
+        week: 'Week',
+        month: 'Month',
+        year: 'Year'
+      },
+      healthChartTypes: {
+        line: 'Line',
+        area: 'Area',
+        bar: 'Bar'
+      },
+      healthRecordsTitle: 'History',
+      healthRecordsCount: '{count} records'
     }
   },
   zh: {
@@ -690,6 +876,7 @@ export const messages: Record<Locale, Messages> = {
       description: '持续学习，稳步向前。',
       startButton: '开始探索',
       toolsButton: '前端工具箱',
+      healthButton: '健康中心',
       knowledgeButton: '前端知识库',
       blogButton: '技术博客',
       githubButton: 'GitHub',
@@ -973,6 +1160,75 @@ export const messages: Record<Locale, Messages> = {
         { name: '国庆节', startIso: '2026-10-01T00:00:00+08:00', endIso: '2026-10-07T23:59:59+08:00' }
       ]
     },
+    health: {
+      kicker: '健康模块',
+      title: '身体数据与趋势',
+      description: '记录身体指标，计算健康状态，并用多指标趋势图观察长期变化。',
+      backHome: '返回首页',
+      backTools: '返回工具页',
+      profileTitle: '今日数据',
+      profileDescription: '填写今天的身体数据，保存到本地健康时间线。',
+      dateLabel: '日期',
+      weightLabel: '体重 (kg)',
+      heightLabel: '身高 (cm)',
+      genderLabel: '性别',
+      genderMale: '男',
+      genderFemale: '女',
+      genderOther: '其他',
+      genderValue: {
+        male: '男',
+        female: '女',
+        other: '其他'
+      },
+      bodyFatLabel: '体脂率 (%)',
+      waistLabel: '腰围 (cm)',
+      targetWeightLabel: '目标体重 (kg)',
+      noteLabel: '每日备注',
+      notePlaceholder: '记录睡眠、训练、饮食或体感',
+      bmiLabel: '当前 BMI',
+      bmiRangeCopy: '健康参考范围',
+      healthyWeightLabel: '健康体重区间',
+      deltaLabel: '距目标差值',
+      rangeUnderweight: '偏瘦：低于 18.5',
+      rangeNormal: '健康：18.5 - 23.9',
+      rangeOverweight: '超重：24 - 27.9',
+      rangeObese: '肥胖：28 及以上',
+      ranges: {
+        underweight: '偏瘦',
+        normal: '健康',
+        overweight: '超重',
+        obese: '肥胖'
+      },
+      saveAction: '保存记录',
+      clearAction: '清空记录',
+      deleteAction: '删除',
+      trendTitle: '趋势面板',
+      latestLabel: '最新',
+      noData: '暂无健康记录。',
+      dimensions: {
+        day: '日',
+        week: '周',
+        month: '月',
+        year: '年'
+      },
+      chartTypes: {
+        line: '折线',
+        area: '面积',
+        bar: '柱状'
+      },
+      metrics: {
+        bmi: 'BMI',
+        weight: '体重',
+        bodyFat: '体脂'
+      },
+      metricValueLabels: {
+        bmi: 'BMI',
+        weight: '体重',
+        bodyFat: '体脂'
+      },
+      recordsTitle: '历史记录',
+      recordsCount: '{count} 条记录'
+    },
     tools: {
       kicker: '工具集合',
       title: '前端工具合集',
@@ -985,6 +1241,7 @@ export const messages: Record<Locale, Messages> = {
       urlNav: 'URL',
       regexNav: '正则',
       chatNav: 'AI 聊天',
+      healthNav: '健康',
       formatterTitle: 'HTML 格式化',
       formatterDescription: '统一缩进和结构，便于阅读与提交。',
       validatorTitle: 'HTML 结构校验',
@@ -997,6 +1254,8 @@ export const messages: Record<Locale, Messages> = {
       regexDescription: '输入正则与文本，直观查看命中区间。',
       chatTitle: 'AI 聊天窗口',
       chatDescription: '内置轻量聊天模块，可选配置 OpenAI 兼容接口。',
+      healthTitle: '健康记录',
+      healthDescription: '记录身体数据，实时计算 BMI，并按时间维度展示炫酷趋势。',
       sourceLabel: '输入',
       outputLabel: '输出',
       regexPatternLabel: '表达式',
@@ -1049,7 +1308,49 @@ export const messages: Record<Locale, Messages> = {
       chatApiKeyLabel: 'API Key',
       chatApiKeyPlaceholder: 'sk-...',
       chatSystemPromptLabel: '系统提示词',
-      chatSystemPromptPlaceholder: '设置助手行为与回复风格'
+      chatSystemPromptPlaceholder: '设置助手行为与回复风格',
+      healthDateLabel: '日期',
+      healthWeightLabel: '体重 (kg)',
+      healthHeightLabel: '身高 (cm)',
+      healthGenderLabel: '性别',
+      healthGenderMale: '男',
+      healthGenderFemale: '女',
+      healthGenderOther: '其他',
+      healthGenderValue: {
+        male: '男',
+        female: '女',
+        other: '其他'
+      },
+      healthBmiLabel: '当前 BMI',
+      healthBmiRangeCopy: '健康参考范围',
+      healthRangeUnderweight: '偏瘦：低于 18.5',
+      healthRangeNormal: '健康：18.5 - 23.9',
+      healthRangeOverweight: '超重：24 - 27.9',
+      healthRangeObese: '肥胖：28 及以上',
+      healthRanges: {
+        underweight: '偏瘦',
+        normal: '健康',
+        overweight: '超重',
+        obese: '肥胖'
+      },
+      healthSaveAction: '保存记录',
+      healthClearAction: '清空记录',
+      healthTrendTitle: 'BMI 趋势',
+      healthLatestLabel: '最新',
+      healthNoData: '暂无健康记录。',
+      healthDimensions: {
+        day: '日',
+        week: '周',
+        month: '月',
+        year: '年'
+      },
+      healthChartTypes: {
+        line: '折线',
+        area: '面积',
+        bar: '柱状'
+      },
+      healthRecordsTitle: '历史记录',
+      healthRecordsCount: '{count} 条记录'
     }
   }
 };

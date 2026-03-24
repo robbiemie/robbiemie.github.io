@@ -1,4 +1,17 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis
+} from 'recharts';
 import { useI18n } from '../../i18n/locale-context';
 import { useAiChat } from '../../hooks/useAiChat';
 
@@ -25,13 +38,34 @@ type RegexMatchRecord = {
   groups: string[];
 };
 
-export type ToolsRouteKey = 'overview' | 'html' | 'json' | 'url' | 'regex' | 'chat';
+type HealthGender = 'male' | 'female' | 'other';
+type HealthRangeKey = 'underweight' | 'normal' | 'overweight' | 'obese';
+type HealthDimension = 'day' | 'week' | 'month' | 'year';
+
+type HealthRecord = {
+  id: string;
+  date: string;
+  weightKg: number;
+  heightCm: number;
+  gender: HealthGender;
+  bmi: number;
+};
+
+type HealthTrendPoint = {
+  label: string;
+  value: number;
+  count: number;
+};
+
+type HealthChartType = 'line' | 'area' | 'bar';
+
+export type ToolsRouteKey = 'overview' | 'html' | 'json' | 'url' | 'regex' | 'chat' | 'health';
 
 type ToolsPageProps = {
   activeTool: ToolsRouteKey;
 };
 
-const getRouteHref = (segment: '' | 'tools' | 'tools/html' | 'tools/json' | 'tools/url' | 'tools/regex' | 'tools/chat'): string => {
+const getRouteHref = (segment: '' | 'tools' | 'tools/html' | 'tools/json' | 'tools/url' | 'tools/regex' | 'tools/chat' | 'tools/health'): string => {
   const basePath = import.meta.env.BASE_URL ?? '/';
   const normalizedBase = basePath.endsWith('/') ? basePath : `${basePath}/`;
   return segment ? `${normalizedBase}${segment}` : normalizedBase;
@@ -149,6 +183,78 @@ const convertJsonKeysToSnakeCase = (input: unknown): unknown => {
   return input;
 };
 
+const HEALTH_STORAGE_KEY = 'tools.health.records.v1';
+
+const calculateBmi = (weightKg: number, heightCm: number): number => {
+  if (weightKg <= 0 || heightCm <= 0) {
+    return 0;
+  }
+  const heightM = heightCm / 100;
+  return Number((weightKg / (heightM * heightM)).toFixed(1));
+};
+
+const getBmiRangeKey = (bmi: number): HealthRangeKey => {
+  if (bmi < 18.5) {
+    return 'underweight';
+  }
+  if (bmi < 24) {
+    return 'normal';
+  }
+  if (bmi < 28) {
+    return 'overweight';
+  }
+  return 'obese';
+};
+
+const getHealthPeriodLabel = (isoDate: string, dimension: HealthDimension): string => {
+  const date = new Date(`${isoDate}T00:00:00`);
+  if (Number.isNaN(date.getTime())) {
+    return isoDate;
+  }
+
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+
+  if (dimension === 'day') {
+    return `${month}/${day}`;
+  }
+
+  if (dimension === 'month') {
+    return `${year}-${month}`;
+  }
+
+  if (dimension === 'year') {
+    return `${year}`;
+  }
+
+  const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+  const dayOffset = Math.floor((date.getTime() - firstDayOfYear.getTime()) / 86400000);
+  const week = Math.ceil((dayOffset + firstDayOfYear.getDay() + 1) / 7);
+  return `${year}-W${String(week).padStart(2, '0')}`;
+};
+
+const buildHealthTrend = (records: HealthRecord[], dimension: HealthDimension): HealthTrendPoint[] => {
+  const grouped = new Map<string, { total: number; count: number }>();
+
+  records.forEach((record) => {
+    const label = getHealthPeriodLabel(record.date, dimension);
+    const current = grouped.get(label) ?? { total: 0, count: 0 };
+    current.total += record.bmi;
+    current.count += 1;
+    grouped.set(label, current);
+  });
+
+  return [...grouped.entries()]
+    .map(([label, meta]) => ({
+      label,
+      value: Number((meta.total / meta.count).toFixed(1)),
+      count: meta.count
+    }))
+    .sort((left, right) => left.label.localeCompare(right.label))
+    .slice(-12);
+};
+
 export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
   const { message } = useI18n();
   const homeHref = useMemo(() => getRouteHref(''), []);
@@ -158,6 +264,7 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
   const urlHref = useMemo(() => getRouteHref('tools/url'), []);
   const regexHref = useMemo(() => getRouteHref('tools/regex'), []);
   const chatHref = useMemo(() => getRouteHref('tools/chat'), []);
+  const healthHref = useMemo(() => getRouteHref('tools/health'), []);
 
   const [htmlSource, setHtmlSource] = useState('');
   const [htmlOutput, setHtmlOutput] = useState('');
@@ -180,6 +287,13 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
   const [chatInput, setChatInput] = useState('');
   const [showChatSettings, setShowChatSettings] = useState(false);
   const chatScrollRef = useRef<HTMLElement | null>(null);
+  const [healthDate, setHealthDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [healthWeight, setHealthWeight] = useState('78');
+  const [healthHeight, setHealthHeight] = useState('178');
+  const [healthGender, setHealthGender] = useState<HealthGender>('male');
+  const [healthDimension, setHealthDimension] = useState<HealthDimension>('week');
+  const [healthChartType, setHealthChartType] = useState<HealthChartType>('area');
+  const [healthRecords, setHealthRecords] = useState<HealthRecord[]>([]);
 
   const {
     settings: chatSettings,
@@ -192,6 +306,11 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
   } = useAiChat({
     initialAssistantMessage: message.tools.chatGreeting
   });
+
+  const currentHealthBmi = calculateBmi(Number(healthWeight), Number(healthHeight));
+  const currentHealthRangeKey = getBmiRangeKey(currentHealthBmi || 0);
+  const healthTrendPoints = buildHealthTrend(healthRecords, healthDimension);
+  const latestHealthRecord = healthRecords[healthRecords.length - 1] ?? null;
 
   const onFormatHtml = () => {
     setHtmlOutput(formatHtml(htmlSource));
@@ -385,6 +504,33 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
     chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
   }, [chatMessages, isChatSending]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const raw = window.localStorage.getItem(HEALTH_STORAGE_KEY);
+    if (!raw) {
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as HealthRecord[];
+      if (Array.isArray(parsed)) {
+        setHealthRecords(parsed);
+      }
+    } catch {
+      // Ignore invalid local cache and keep empty list.
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    window.localStorage.setItem(HEALTH_STORAGE_KEY, JSON.stringify(healthRecords));
+  }, [healthRecords]);
+
   const renderRegexPreview = (): ReactNode => {
     if (!regexSource) {
       return <p className="tools-preview-empty">{message.tools.regexNoMatch}</p>;
@@ -438,6 +584,10 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
         <a className="tools-nav-card" href={chatHref}>
           <h3>{message.tools.chatTitle}</h3>
           <p>{message.tools.chatDescription}</p>
+        </a>
+        <a className="tools-nav-card" href={healthHref}>
+          <h3>{message.tools.healthTitle}</h3>
+          <p>{message.tools.healthDescription}</p>
         </a>
       </div>
     );
@@ -715,6 +865,262 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
     );
   };
 
+  const renderHealthTool = () => {
+    const onSaveHealthRecord = () => {
+      const weightKg = Number(healthWeight);
+      const heightCm = Number(healthHeight);
+      const bmi = calculateBmi(weightKg, heightCm);
+      if (!healthDate || bmi <= 0) {
+        return;
+      }
+
+      const nextRecord: HealthRecord = {
+        id: `${healthDate}-${Date.now()}`,
+        date: healthDate,
+        weightKg,
+        heightCm,
+        gender: healthGender,
+        bmi
+      };
+
+      setHealthRecords((previous) =>
+        [...previous, nextRecord].sort((left, right) => left.date.localeCompare(right.date))
+      );
+    };
+
+    const onClearHealthRecords = () => {
+      setHealthRecords([]);
+    };
+
+    const renderHealthChart = () => {
+      const sharedAxisProps = {
+        dataKey: 'label' as const,
+        tickLine: false,
+        axisLine: false,
+        tick: { fill: '#47708b', fontSize: 12, fontWeight: 700 }
+      };
+
+      const sharedYAxisProps = {
+        tickLine: false,
+        axisLine: false,
+        tick: { fill: '#47708b', fontSize: 12, fontWeight: 700 },
+        domain: ['dataMin - 1', 'dataMax + 1'] as [string, string]
+      };
+
+      const sharedTooltip = (
+        <Tooltip
+          cursor={{ stroke: 'rgba(77, 161, 222, 0.28)', strokeWidth: 2 }}
+          contentStyle={{
+            borderRadius: 14,
+            border: '1px solid rgba(59, 134, 189, 0.18)',
+            boxShadow: '0 12px 28px rgba(53, 120, 163, 0.16)',
+            background: 'rgba(255,255,255,0.96)'
+          }}
+          formatter={(value, _name, item) => [
+            `BMI ${typeof value === 'number' ? value : Number(value ?? 0)}`,
+            `${message.tools.healthDimensions[healthDimension]} · ${item.payload.count}`
+          ]}
+        />
+      );
+
+      if (healthChartType === 'line') {
+        return (
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={healthTrendPoints} margin={{ top: 18, right: 12, bottom: 12, left: 0 }}>
+              <defs>
+                <linearGradient id="healthLineGradient" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#ff9b5b" />
+                  <stop offset="100%" stopColor="#48c8ff" />
+                </linearGradient>
+              </defs>
+              <CartesianGrid stroke="rgba(75, 143, 189, 0.14)" vertical={false} />
+              <XAxis {...sharedAxisProps} />
+              <YAxis {...sharedYAxisProps} />
+              {sharedTooltip}
+              <Line type="monotone" dataKey="value" stroke="url(#healthLineGradient)" strokeWidth={4} dot={{ r: 5, fill: '#fff', stroke: '#ff9b5b', strokeWidth: 3 }} activeDot={{ r: 7 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        );
+      }
+
+      if (healthChartType === 'bar') {
+        return (
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={healthTrendPoints} margin={{ top: 18, right: 12, bottom: 12, left: 0 }}>
+              <defs>
+                <linearGradient id="healthBarGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#ffb469" />
+                  <stop offset="100%" stopColor="#58bfff" />
+                </linearGradient>
+              </defs>
+              <CartesianGrid stroke="rgba(75, 143, 189, 0.14)" vertical={false} />
+              <XAxis {...sharedAxisProps} />
+              <YAxis {...sharedYAxisProps} />
+              {sharedTooltip}
+              <Bar dataKey="value" fill="url(#healthBarGradient)" radius={[10, 10, 4, 4]} barSize={28} />
+            </BarChart>
+          </ResponsiveContainer>
+        );
+      }
+
+      return (
+        <ResponsiveContainer width="100%" height={280}>
+          <AreaChart data={healthTrendPoints} margin={{ top: 18, right: 12, bottom: 12, left: 0 }}>
+            <defs>
+              <linearGradient id="healthAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#57b7ff" stopOpacity="0.55" />
+                <stop offset="100%" stopColor="#57b7ff" stopOpacity="0.06" />
+              </linearGradient>
+              <linearGradient id="healthAreaStrokeGradient" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#ff9b5b" />
+                <stop offset="100%" stopColor="#48c8ff" />
+              </linearGradient>
+            </defs>
+            <CartesianGrid stroke="rgba(75, 143, 189, 0.14)" vertical={false} />
+            <XAxis {...sharedAxisProps} />
+            <YAxis {...sharedYAxisProps} />
+            {sharedTooltip}
+            <Area type="monotone" dataKey="value" stroke="url(#healthAreaStrokeGradient)" strokeWidth={4} fill="url(#healthAreaGradient)" dot={{ r: 4, fill: '#fff', stroke: '#48c8ff', strokeWidth: 2 }} activeDot={{ r: 6 }} />
+          </AreaChart>
+        </ResponsiveContainer>
+      );
+    };
+
+    return (
+      <article className="tools-card tools-card-single tools-card-health">
+        <div className="tools-health-sidebar">
+          <h3>{message.tools.healthTitle}</h3>
+          <p>{message.tools.healthDescription}</p>
+
+          <div className="tools-health-form">
+            <label className="tools-field">
+              <span>{message.tools.healthDateLabel}</span>
+              <input type="date" className="tools-input" value={healthDate} onChange={(event) => setHealthDate(event.target.value)} />
+            </label>
+            <label className="tools-field">
+              <span>{message.tools.healthWeightLabel}</span>
+              <input type="number" className="tools-input" value={healthWeight} onChange={(event) => setHealthWeight(event.target.value)} placeholder="78" />
+            </label>
+            <label className="tools-field">
+              <span>{message.tools.healthHeightLabel}</span>
+              <input type="number" className="tools-input" value={healthHeight} onChange={(event) => setHealthHeight(event.target.value)} placeholder="178" />
+            </label>
+            <label className="tools-field">
+              <span>{message.tools.healthGenderLabel}</span>
+              <select className="tools-input tools-select" value={healthGender} onChange={(event) => setHealthGender(event.target.value as HealthGender)}>
+                <option value="male">{message.tools.healthGenderMale}</option>
+                <option value="female">{message.tools.healthGenderFemale}</option>
+                <option value="other">{message.tools.healthGenderOther}</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="tools-health-summary">
+            <div className={`tools-health-bmi-card is-${currentHealthRangeKey}`}>
+              <span>{message.tools.healthBmiLabel}</span>
+              <strong>{currentHealthBmi || '--'}</strong>
+              <em>{message.tools.healthRanges[currentHealthRangeKey]}</em>
+            </div>
+            <p className="tools-health-range-copy">{message.tools.healthBmiRangeCopy}</p>
+            <ul className="tools-health-range-list">
+              <li>{message.tools.healthRangeUnderweight}</li>
+              <li>{message.tools.healthRangeNormal}</li>
+              <li>{message.tools.healthRangeOverweight}</li>
+              <li>{message.tools.healthRangeObese}</li>
+            </ul>
+          </div>
+
+          <div className="tools-actions tools-actions-three">
+            <button type="button" className="world-action-button action-enter" onClick={onSaveHealthRecord}>
+              {message.tools.healthSaveAction}
+            </button>
+            <button type="button" className="world-action-button world-action-button-alt action-rule" onClick={onClearHealthRecords}>
+              {message.tools.healthClearAction}
+            </button>
+          </div>
+        </div>
+
+        <div className="tools-health-main">
+          <div className="tools-health-chart-card">
+            <div className="tools-health-chart-header">
+              <div>
+                <h4>{message.tools.healthTrendTitle}</h4>
+                <p>{latestHealthRecord ? `${message.tools.healthLatestLabel}: BMI ${latestHealthRecord.bmi}` : message.tools.healthNoData}</p>
+              </div>
+              <div className="tools-health-chart-controls">
+                <div className="tools-health-dimension-tabs">
+                  {(['day', 'week', 'month', 'year'] as HealthDimension[]).map((dimension) => (
+                    <button
+                      key={dimension}
+                      type="button"
+                      className={`tools-health-dimension-tab ${healthDimension === dimension ? 'is-active' : ''}`}
+                      onClick={() => setHealthDimension(dimension)}
+                    >
+                      {message.tools.healthDimensions[dimension]}
+                    </button>
+                  ))}
+                </div>
+                <div className="tools-health-dimension-tabs">
+                  {(['area', 'line', 'bar'] as HealthChartType[]).map((chartType) => (
+                    <button
+                      key={chartType}
+                      type="button"
+                      className={`tools-health-dimension-tab ${healthChartType === chartType ? 'is-active' : ''}`}
+                      onClick={() => setHealthChartType(chartType)}
+                    >
+                      {message.tools.healthChartTypes[chartType]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {healthTrendPoints.length > 0 ? (
+              <div className="tools-health-chart-shell">
+                {renderHealthChart()}
+              </div>
+            ) : (
+              <p className="tools-preview-empty">{message.tools.healthNoData}</p>
+            )}
+          </div>
+
+          <div className="tools-health-records-card">
+            <div className="tools-health-chart-header">
+              <div>
+                <h4>{message.tools.healthRecordsTitle}</h4>
+                <p>{message.tools.healthRecordsCount.replace('{count}', String(healthRecords.length))}</p>
+              </div>
+            </div>
+            {healthRecords.length > 0 ? (
+              <div className="tools-health-records-list">
+                {healthRecords
+                  .slice()
+                  .reverse()
+                  .map((record) => (
+                    <article key={record.id} className="tools-health-record-item">
+                      <div>
+                        <strong>{record.date}</strong>
+                        <p>{message.tools.healthGenderValue[record.gender]}</p>
+                      </div>
+                      <div>
+                        <span>{record.weightKg} kg</span>
+                        <span>{record.heightCm} cm</span>
+                      </div>
+                      <div className={`tools-health-record-bmi is-${getBmiRangeKey(record.bmi)}`}>
+                        BMI {record.bmi}
+                      </div>
+                    </article>
+                  ))}
+              </div>
+            ) : (
+              <p className="tools-preview-empty">{message.tools.healthNoData}</p>
+            )}
+          </div>
+        </div>
+      </article>
+    );
+  };
+
   const activePanel = (() => {
     if (activeTool === 'html') {
       return renderHtmlTool();
@@ -730,6 +1136,9 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
     }
     if (activeTool === 'chat') {
       return renderChatTool();
+    }
+    if (activeTool === 'health') {
+      return renderHealthTool();
     }
     return renderOverview();
   })();
@@ -765,6 +1174,9 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
         </a>
         <a className={`tools-subnav-item ${activeTool === 'chat' ? 'is-active' : ''}`} href={chatHref}>
           {message.tools.chatNav}
+        </a>
+        <a className={`tools-subnav-item ${activeTool === 'health' ? 'is-active' : ''}`} href={healthHref}>
+          {message.tools.healthNav}
         </a>
       </nav>
 

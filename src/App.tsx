@@ -3,13 +3,14 @@ import { observer } from 'mobx-react-lite';
 import { LanguageSwitch } from './components/common/LanguageSwitch';
 import { ParticleBackdrop } from './components/effects/ParticleBackdrop';
 import { CyberMuyuSection } from './components/sections/CyberMuyuSection';
+import { HealthPage } from './components/sections/HealthPage';
 import { HeroSection } from './components/sections/HeroSection';
 import { ToolsPage, type ToolsRouteKey } from './components/sections/ToolsPage';
 import { WorldSection } from './components/sections/WorldSection';
 import { usePageState } from './hooks/usePageState';
 
 type AppRoute = {
-  shell: 'home' | 'tools';
+  shell: 'home' | 'tools' | 'health';
   toolsRoute: ToolsRouteKey;
 };
 
@@ -23,9 +24,13 @@ const getRoute = (): AppRoute => {
     return { shell: 'tools', toolsRoute: 'overview' };
   }
 
+  if (strippedPath === '/health' || strippedPath.startsWith('/health/')) {
+    return { shell: 'health', toolsRoute: 'overview' };
+  }
+
   if (strippedPath.startsWith('/tools/')) {
     const segment = strippedPath.replace('/tools/', '').split('/')[0];
-    if (segment === 'html' || segment === 'json' || segment === 'url' || segment === 'regex' || segment === 'chat') {
+    if (segment === 'html' || segment === 'json' || segment === 'url' || segment === 'regex' || segment === 'chat' || segment === 'health') {
       return { shell: 'tools', toolsRoute: segment };
     }
     return { shell: 'tools', toolsRoute: 'overview' };
@@ -62,6 +67,18 @@ const ToolsShell = ({ toolsRoute }: { toolsRoute: ToolsRouteKey }) => {
   );
 };
 
+const HealthShell = () => {
+  return (
+    <div className="app-shell" data-ready="true">
+      <ParticleBackdrop />
+      <LanguageSwitch />
+      <main className="app-main">
+        <HealthPage standalone />
+      </main>
+    </div>
+  );
+};
+
 export const App = () => {
   const [route, setRoute] = useState<AppRoute>(() => getRoute());
 
@@ -77,6 +94,10 @@ export const App = () => {
 
   if (route.shell === 'tools') {
     return <ToolsShell toolsRoute={route.toolsRoute} />;
+  }
+
+  if (route.shell === 'health') {
+    return <HealthShell />;
   }
 
   return <HomeShell />;
