@@ -272,6 +272,7 @@ type Messages = {
     jsonNav: string;
     urlNav: string;
     regexNav: string;
+    markdownNav: string;
     chatNav: string;
     healthNav: string;
     formatterTitle: string;
@@ -284,6 +285,8 @@ type Messages = {
     urlDescription: string;
     regexTitle: string;
     regexDescription: string;
+    markdownTitle: string;
+    markdownDescription: string;
     chatTitle: string;
     chatDescription: string;
     healthTitle: string;
@@ -298,6 +301,7 @@ type Messages = {
     urlPlaceholder: string;
     regexPatternPlaceholder: string;
     regexTextPlaceholder: string;
+    markdownPlaceholder: string;
     formatAction: string;
     validateAction: string;
     previewAction: string;
@@ -315,6 +319,13 @@ type Messages = {
     urlDecodeAction: string;
     clearAction: string;
     copyAction: string;
+    markdownExampleAction: string;
+    markdownCopySourceAction: string;
+    markdownCopyRenderedAction: string;
+    markdownCopyCodeAction: string;
+    markdownCopySuccess: string;
+    markdownCopyFailed: string;
+    markdownEmpty: string;
     validatePass: string;
     validateFailPrefix: string;
     jsonValidatePass: string;
@@ -756,6 +767,7 @@ export const messages: Record<Locale, Messages> = {
       jsonNav: 'JSON',
       urlNav: 'URL',
       regexNav: 'Regex',
+      markdownNav: 'Markdown',
       chatNav: 'AI Chat',
       healthNav: 'Health',
       formatterTitle: 'HTML Formatter',
@@ -768,6 +780,8 @@ export const messages: Record<Locale, Messages> = {
       urlDescription: 'Quick encode or decode for query and path text.',
       regexTitle: 'Regex Visualizer',
       regexDescription: 'Test regex and visualize matched ranges.',
+      markdownTitle: 'Markdown Renderer',
+      markdownDescription: 'Parse markdown into a readable document view with GFM, syntax highlight, and copy support.',
       chatTitle: 'AI Chat',
       chatDescription: 'A lightweight chat window with optional OpenAI-compatible endpoint settings.',
       healthTitle: 'Health Tracker',
@@ -782,6 +796,7 @@ export const messages: Record<Locale, Messages> = {
       urlPlaceholder: 'name=Robbie Yang&stack=frontend tools',
       regexPatternPlaceholder: 'e.g. \\b[a-zA-Z]{4}\\b',
       regexTextPlaceholder: 'Input text for regex matching',
+      markdownPlaceholder: '# Write markdown here',
       formatAction: 'Format HTML',
       validateAction: 'Validate HTML',
       previewAction: 'Preview',
@@ -799,6 +814,13 @@ export const messages: Record<Locale, Messages> = {
       urlDecodeAction: 'Decode URL',
       clearAction: 'Clear',
       copyAction: 'Copy',
+      markdownExampleAction: 'Load Example',
+      markdownCopySourceAction: 'Copy Markdown',
+      markdownCopyRenderedAction: 'Copy All Text',
+      markdownCopyCodeAction: 'Copy Code',
+      markdownCopySuccess: 'Copied.',
+      markdownCopyFailed: 'Copy failed.',
+      markdownEmpty: 'No markdown content to render.',
       validatePass: 'Structure check passed.',
       validateFailPrefix: 'Structure issue:',
       jsonValidatePass: 'JSON is valid.',
@@ -1240,6 +1262,7 @@ export const messages: Record<Locale, Messages> = {
       jsonNav: 'JSON',
       urlNav: 'URL',
       regexNav: '正则',
+      markdownNav: 'Markdown',
       chatNav: 'AI 聊天',
       healthNav: '健康',
       formatterTitle: 'HTML 格式化',
@@ -1252,6 +1275,8 @@ export const messages: Record<Locale, Messages> = {
       urlDescription: '快速处理查询参数与路径文本。',
       regexTitle: '正则可视化',
       regexDescription: '输入正则与文本，直观查看命中区间。',
+      markdownTitle: 'Markdown Renderer',
+      markdownDescription: 'Parse markdown into a readable document view with GFM, syntax highlight, and copy support.',
       chatTitle: 'AI 聊天窗口',
       chatDescription: '内置轻量聊天模块，可选配置 OpenAI 兼容接口。',
       healthTitle: '健康记录',
@@ -1266,6 +1291,7 @@ export const messages: Record<Locale, Messages> = {
       urlPlaceholder: 'name=Robbie Yang&stack=frontend tools',
       regexPatternPlaceholder: '例如：\\b[a-zA-Z]{4}\\b',
       regexTextPlaceholder: '输入待匹配文本',
+      markdownPlaceholder: '# Write markdown here',
       formatAction: '格式化 HTML',
       validateAction: '校验 HTML',
       previewAction: '预览',
@@ -1283,6 +1309,13 @@ export const messages: Record<Locale, Messages> = {
       urlDecodeAction: 'URL 解码',
       clearAction: '清空',
       copyAction: '复制',
+      markdownExampleAction: 'Load Example',
+      markdownCopySourceAction: 'Copy Markdown',
+      markdownCopyRenderedAction: 'Copy All Text',
+      markdownCopyCodeAction: 'Copy Code',
+      markdownCopySuccess: 'Copied.',
+      markdownCopyFailed: 'Copy failed.',
+      markdownEmpty: 'No markdown content to render.',
       validatePass: '结构校验通过。',
       validateFailPrefix: '结构异常：',
       jsonValidatePass: 'JSON 校验通过。',

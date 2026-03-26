@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Area,
   AreaChart,
@@ -14,6 +14,8 @@ import {
 } from 'recharts';
 import { useI18n } from '../../i18n/locale-context';
 import { useAiChat } from '../../hooks/useAiChat';
+
+const MarkdownRendererTool = lazy(() => import('../tools/MarkdownRendererTool'));
 
 const VOID_TAGS = new Set([
   'area',
@@ -59,13 +61,13 @@ type HealthTrendPoint = {
 
 type HealthChartType = 'line' | 'area' | 'bar';
 
-export type ToolsRouteKey = 'overview' | 'html' | 'json' | 'url' | 'regex' | 'chat' | 'health';
+export type ToolsRouteKey = 'overview' | 'html' | 'json' | 'url' | 'regex' | 'markdown' | 'chat' | 'health';
 
 type ToolsPageProps = {
   activeTool: ToolsRouteKey;
 };
 
-const getRouteHref = (segment: '' | 'tools' | 'tools/html' | 'tools/json' | 'tools/url' | 'tools/regex' | 'tools/chat' | 'tools/health'): string => {
+const getRouteHref = (segment: '' | 'tools' | 'tools/html' | 'tools/json' | 'tools/url' | 'tools/regex' | 'tools/markdown' | 'tools/chat' | 'tools/health'): string => {
   const basePath = import.meta.env.BASE_URL ?? '/';
   const normalizedBase = basePath.endsWith('/') ? basePath : `${basePath}/`;
   return segment ? `${normalizedBase}${segment}` : normalizedBase;
@@ -263,6 +265,7 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
   const jsonHref = useMemo(() => getRouteHref('tools/json'), []);
   const urlHref = useMemo(() => getRouteHref('tools/url'), []);
   const regexHref = useMemo(() => getRouteHref('tools/regex'), []);
+  const markdownHref = useMemo(() => getRouteHref('tools/markdown'), []);
   const chatHref = useMemo(() => getRouteHref('tools/chat'), []);
   const healthHref = useMemo(() => getRouteHref('tools/health'), []);
 
@@ -581,6 +584,10 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
           <h3>{message.tools.regexTitle}</h3>
           <p>{message.tools.regexDescription}</p>
         </a>
+        <a className="tools-nav-card" href={markdownHref}>
+          <h3>{message.tools.markdownTitle}</h3>
+          <p>{message.tools.markdownDescription}</p>
+        </a>
         <a className="tools-nav-card" href={chatHref}>
           <h3>{message.tools.chatTitle}</h3>
           <p>{message.tools.chatDescription}</p>
@@ -865,6 +872,36 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
     );
   };
 
+  const renderMarkdownTool = () => {
+    return (
+      <Suspense
+        fallback={
+          <article className="tools-card tools-card-single">
+            <h3>{message.tools.markdownTitle}</h3>
+            <p>{message.tools.markdownDescription}</p>
+          </article>
+        }
+      >
+        <MarkdownRendererTool
+          title={message.tools.markdownTitle}
+          description={message.tools.markdownDescription}
+          sourceLabel={message.tools.sourceLabel}
+          previewLabel={message.tools.previewTitle}
+          placeholder={message.tools.markdownPlaceholder}
+          emptyText={message.tools.markdownEmpty}
+          copyAction={message.tools.copyAction}
+          clearAction={message.tools.clearAction}
+          exampleAction={message.tools.markdownExampleAction}
+          copyMarkdownAction={message.tools.markdownCopySourceAction}
+          copyRenderedAction={message.tools.markdownCopyRenderedAction}
+          copyCodeAction={message.tools.markdownCopyCodeAction}
+          copySuccessText={message.tools.markdownCopySuccess}
+          copyFailedText={message.tools.markdownCopyFailed}
+        />
+      </Suspense>
+    );
+  };
+
   const renderHealthTool = () => {
     const onSaveHealthRecord = () => {
       const weightKg = Number(healthWeight);
@@ -1134,6 +1171,9 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
     if (activeTool === 'regex') {
       return renderRegexTool();
     }
+    if (activeTool === 'markdown') {
+      return renderMarkdownTool();
+    }
     if (activeTool === 'chat') {
       return renderChatTool();
     }
@@ -1171,6 +1211,9 @@ export const ToolsPage = ({ activeTool }: ToolsPageProps) => {
         </a>
         <a className={`tools-subnav-item ${activeTool === 'regex' ? 'is-active' : ''}`} href={regexHref}>
           {message.tools.regexNav}
+        </a>
+        <a className={`tools-subnav-item ${activeTool === 'markdown' ? 'is-active' : ''}`} href={markdownHref}>
+          {message.tools.markdownNav}
         </a>
         <a className={`tools-subnav-item ${activeTool === 'chat' ? 'is-active' : ''}`} href={chatHref}>
           {message.tools.chatNav}
